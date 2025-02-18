@@ -1474,10 +1474,10 @@ initialize_auditd(){
         sed -i 's/RefuseManualStop=yes/RefuseManualStop=no/g' /usr/lib/systemd/system/auditd.service
     fi
 
-    Auditctl -R /etc/audit/rules.d/audit.rules
+    auditctl -R /etc/audit/rules.d/audit.rules
     systemctl restart auditd
     Service auditd restart
-    Systemctl daemon-reload
+    systemctl daemon-reload
 }
 
 install_additional_scripts() {
@@ -1720,12 +1720,12 @@ update_packages
 ipv6_config 
 install_packages 
 
-initialize_clamav   & 
-configure_and_init_aide  &
-install_additional_scripts  &
-initialize_auditd  &
-netconfig_script  &
-create_deny_access_script  &
+initialize_clamav   &> >(tee -a /dev/tty) &
+configure_and_init_aide  &> >(tee -a /dev/tty) &
+install_additional_scripts  &> >(tee -a /dev/tty) &
+initialize_auditd  &> >(tee -a /dev/tty) &
+netconfig_script  &> >(tee -a /dev/tty) &
+create_deny_access_script  &> >(tee -a /dev/tty) &
 
 wait
 
