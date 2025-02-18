@@ -1476,7 +1476,7 @@ initialize_auditd(){
 
     auditctl -R /etc/audit/rules.d/audit.rules
     systemctl restart auditd
-    Service auditd restart
+    service auditd restart
     systemctl daemon-reload
 }
 
@@ -1720,13 +1720,22 @@ update_packages
 ipv6_config 
 install_packages 
 
-initialize_clamav   &> >(tee -a /dev/tty) &
-configure_and_init_aide  &> >(tee -a /dev/tty) &
-install_additional_scripts  &> >(tee -a /dev/tty) &
-initialize_auditd  &> >(tee -a /dev/tty) &
-netconfig_script  &> >(tee -a /dev/tty) &
-create_deny_access_script  &> >(tee -a /dev/tty) &
+initialize_clamav &
+clamav_pid=$!
+configure_and_init_aide &
+aide_pid=$!
+install_additional_scripts &
+scripts_pid=$!
+initialize_auditd &
+auditd_pid=$!
+netconfig_script &
+netconfig_pid=$!
+create_deny_access_script &
+deny_access_pid=$!
 
-wait
+while [ -e /proc/$clamav_pid ] || [ -e /proc/$aide_pid ] || [ -e /proc/$scripts_pid ] || [ -e /proc/$auditd_pid ] || [ -e /proc/$netconfig_pid ] || [ -e /proc/$deny_access_pid ]; do
+    echo "Waiting for services to complete..."
+    sleep 5
+done
 
 echo "Finished running init.sh, please reboot the system to apply changes"
