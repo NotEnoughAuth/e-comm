@@ -9,6 +9,36 @@ fi
 CCDC_DIR="/ccdc"
 CCDC_ETC="$CCDC_DIR/etc"
 SCRIPT_DIR="/ccdc/scripts"
+LOGFILE="$CCDC_DIR/logs/monolith-log.txt"
+
+# Color Variables
+RED='\033[0;31m'
+NC='\033[0m'
+BLUE='\033[0;34m'
+GREEN='\033[0;32m'
+
+
+sendLog(){
+    if [ ! -f $LOGFILE ]; then
+        touch $LOGFILE
+    fi
+    if [ -z "$1" ]; then
+        echo "No message provided to log"
+        return 1
+    fi
+    echo "$(date +"%x %X") - $1" >> $LOGFILE
+}
+
+sendError(){
+    if [ ! -f $LOGFILE ]; then
+        touch $LOGFILE
+    fi
+    if [ -z "$1" ]; then
+        echo "No message provided to log"
+        return 1
+    fi
+    echo "$RED$(date +"%x %X") - ERROR: $1$NC" >> $LOGFILE
+}
 
 
 # get the OS ID
@@ -50,9 +80,11 @@ prescripts(){
                 MYSQL="false"
             else
                 MYSQL="true"
+                sendLog "Prestashop is installed on the system, and MySQL has been configured"
             fi
         else
             MYSQL="false"
+            sendError "Could not connect to MySQL, please check the password and try again"
         fi
 
     else
@@ -74,10 +106,18 @@ prescripts(){
     # Create the ccdc directory
     if [ ! -d $CCDC_DIR ]; then
         mkdir $CCDC_DIR
+        sendLog "CCDC directory created"
     fi
     # Check if the linux directory exists within the script directory, if it does not, create it
     if [ ! -d "$SCRIPT_DIR/linux" ]; then
         mkdir -p $SCRIPT_DIR/linux
+        sendLog "Linux directory created"
+    fi
+
+    # Check if the logs directory exists within the ccdc directory, if it does not, create it
+    if [ ! -d "$CCDC_DIR/logs" ]; then
+        mkdir -p $CCDC_DIR/logs
+        sendLog "Logs directory created"
     fi
 
     #////////////////////////////////////////
@@ -136,6 +176,8 @@ EOF
         # update the certificates on the system
         yum update -y ca-certificates
         yum install -y epel-release wget
+
+        sendLog "CentOS 7 Fixes applied"
     fi
 
 
@@ -152,12 +194,14 @@ configure_networking(){
         sed -i 's/DNS1='.*'/DNS1=1.1.1.1/g' /etc/sysconfig/network-scripts/ifcfg-$INTERFACE
         sed -i 's/DNS2='.*'/DNS2=9.9.9.9/g' /etc/sysconfig/network-scripts/ifcfg-$INTERFACE
         systemctl restart network
+        sendLog "New DNS servers set"
     fi
     # Check if the system is running Ubuntu
     if [ "$OS_ID" == "ubuntu" ]; then
         echo "Setting up DNS..."
         echo "nameserver 1.1.1.1" > /etc/resolv.conf
         echo "nameserver 1.0.0.1" >> /etc/resolv.conf
+        sendLog "New DNS servers set"
         #TODO: Add DNS configuration for Ubuntu via netplan
     fi
 }
@@ -195,11 +239,14 @@ while read -r line; do
     if [ $(echo $line | cut -d: -f7) != "/sbin/nologin" ]; then
         usermod -s /sbin/nologin $username
         passwd -l $username
+        echo -n "$username "
     fi
 done < /etc/passwd
+echo
 EOF
     chmod +x $SCRIPT_DIR/linux/lock_users.sh
-    bash $SCRIPT_DIR/linux/lock_users.sh
+    LOCKED_USERS=$(bash $SCRIPT_DIR/linux/lock_users.sh)
+    sendLog "Users locked: $LOCKED_USERS"
 }
 
 iptables(){
@@ -279,6 +326,7 @@ EOF
     chmod +x $IPTABLES_SCRIPT
 
     bash $IPTABLES_SCRIPT
+    sendLog "Iptables rules configured"
 
     # Create systemd unit for the firewall
     mkdir -p /etc/systemd/system/
@@ -302,6 +350,8 @@ EOF
 
     systemctl disable --now firewalld
     systemctl disable --now ufw
+
+    sendLog "Firewall service created and is $(systemctl is-active ccdc_firewall)"
 }
 
 prestashop_config(){
@@ -316,25 +366,31 @@ prestashop_config(){
     fi
     if [ -f "/bkp/original/html.tar.gz" ]; then
         echo "Prestashop backup already exists, skipping backup"
+        sendLog "Prestashop directory already backed up"
     else
         echo "Zipping up /var/www/html..."
         tar -czf /bkp/original/html.tar.gz /var/www/html
+        sendLog "Prestashop directory backed up"
     fi
 
     # zip up the apache config directory and move it to /bkp
     if [ -d "/etc/httpd" ]; then
         if [ -f "/bkp/original/httpd.tar.gz" ]; then
             echo "Apache backup already exists, skipping backup"
+            sendLog "Apache directory already backed up"
         else
             echo "Zipping up /etc/httpd..."
             tar -czf /bkp/original/httpd.tar.gz /etc/httpd
+            sendLog "Apache directory backed up"
         fi
     elif [ -d "/etc/apache2" ]; then
         if [ -f "/bkp/original/apache2.tar.gz" ]; then
             echo "Apache backup already exists, skipping backup"
+            sendLog "Apache directory already backed up"
         else
             echo "Zipping up /etc/apache2..."
             tar -czf /bkp/original/apache2.tar.gz /etc/apache2
+            sendLog "Apache directory backed up"
         fi
     fi  
     
@@ -343,12 +399,15 @@ prestashop_config(){
         # backup the mysql database
         if [ -f "/bkp/original/ecomm.sql" ]; then
             echo "MySQL backup already exists, skipping backup"
+            sendLog "MySQL database already backed up"
         else
             echo "Backing up MySQL database..."
             if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
-            mysqldump -u root --all-databases > /bkp/original/ecomm.sql
+                mysqldump -u root --all-databases > /bkp/original/ecomm.sql
+                sendLog "MySQL database backed up"
             else
-            mysqldump -u root -p$MYSQL_ROOT_PASSWORD --all-databases > /bkp/original/ecomm.sql
+                mysqldump -u root -p$MYSQL_ROOT_PASSWORD --all-databases > /bkp/original/ecomm.sql
+                sendLog "MySQL database backed up"
             fi
         fi
     else
@@ -467,6 +526,8 @@ EOF
         rm -f /var/www/html/prestashop/composer.lock
         rm -f /var/www/html/prestashop/Makefile
         rm -f /var/www/html/prestashop/phpstan.neon.dist
+
+        sendLog "Prestashop unneeded files removed"
     fi
 
     # Get the apache config file
@@ -481,6 +542,7 @@ EOF
         if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/config' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable access to the config directory..."
             echo "RedirectMatch 404 ^/prestashop/config" >> $APACHE_CONFIG
+            sendLog "Prestashop config directory disabled"
         fi
     fi
 
@@ -489,6 +551,7 @@ EOF
         if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/app' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable access to the app directory..."
             echo "RedirectMatch 404 ^/prestashop/app" >> $APACHE_CONFIG
+            sendLog "Prestashop app directory disabled"
         fi
     fi
 
@@ -497,6 +560,7 @@ EOF
         if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/var' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable access to the var directory..."
             echo "RedirectMatch 404 ^/prestashop/var" >> $APACHE_CONFIG
+            sendLog "Prestashop var directory disabled"
         fi
     fi
 
@@ -505,6 +569,7 @@ EOF
         if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/translations' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable access to the translations directory..."
             echo "RedirectMatch 404 ^/prestashop/translations" >> $APACHE_CONFIG
+            sendLog "Prestashop translations directory disabled"
         fi
     fi
 
@@ -513,6 +578,7 @@ EOF
         if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/cache' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable access to the cache directory..."
             echo "RedirectMatch 404 ^/prestashop/cache" >> $APACHE_CONFIG
+            sendLog "Prestashop cache directory disabled"
         fi
     fi
 
@@ -521,6 +587,7 @@ EOF
         if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/src' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable access to the src directory..."
             echo "RedirectMatch 404 ^/prestashop/src" >> $APACHE_CONFIG
+            sendLog "Prestashop src directory disabled"
         fi
     fi
 
@@ -529,6 +596,7 @@ EOF
         if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/vendor' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable access to the vendor directory..."
             echo "RedirectMatch 404 ^/prestashop/vendor" >> $APACHE_CONFIG
+            sendLog "Prestashop vendor directory disabled"
         fi
     fi
 
@@ -537,6 +605,7 @@ EOF
         if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/install' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable access to the install directory..."
             echo "RedirectMatch 404 ^/prestashop/install" >> $APACHE_CONFIG
+            sendLog "Prestashop install directory disabled"
         fi
     fi
 
@@ -545,6 +614,7 @@ EOF
         if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/mails' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable access to the mails directory..."
             echo "RedirectMatch 404 ^/prestashop/mails" >> $APACHE_CONFIG
+            sendLog "Prestashop mails directory disabled"
         fi
     fi
 
@@ -553,6 +623,7 @@ EOF
         if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/pdf' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable access to the pdf directory..."
             echo "RedirectMatch 404 ^/prestashop/pdf" >> $APACHE_CONFIG
+            sendLog "Prestashop pdf directory disabled"
         fi
     fi
 
@@ -561,6 +632,7 @@ EOF
         if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/log' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable access to the log directory..."
             echo "RedirectMatch 404 ^/prestashop/log" >> $APACHE_CONFIG
+            sendLog "Prestashop log directory disabled"
         fi
     fi
 
@@ -569,6 +641,7 @@ EOF
         if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/controllers' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable access to the controllers directory..."
             echo "RedirectMatch 404 ^/prestashop/controllers" >> $APACHE_CONFIG
+            sendLog "Prestashop controllers directory disabled"
         fi
     fi
 
@@ -577,6 +650,7 @@ EOF
         if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/classes' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable access to the classes directory..."
             echo "RedirectMatch 404 ^/prestashop/classes" >> $APACHE_CONFIG
+            sendLog "Prestashop classes directory disabled"
         fi
     fi
 
@@ -585,6 +659,7 @@ EOF
         if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/override' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable access to the override directory..."
             echo "RedirectMatch 404 ^/prestashop/override" >> $APACHE_CONFIG
+            sendLog "Prestashop override directory disabled"
         fi
     fi
 
@@ -604,6 +679,7 @@ EOF
     php_admin_flag engine off
 </Directory>
 EOF
+            sendLog "Only images can be accessed in the img directory"
         fi
 
     fi
@@ -625,18 +701,48 @@ EOF
     Deny from all
 </FilesMatch>
 EOF
+        sendLog "Access to sensitive files disabled"
     fi
+
+
+    # disable the php engine in the /var/www/html/prestashop/upload directory and download directory
+    if [ -d "/var/www/html/prestashop/upload" ]; then
+        if [ "$(grep -iq '<Directory /var/www/html/prestashop/upload>' $APACHE_CONFIG)" ]; then
+            echo "Adding configuration to disable the php engine in the upload directory..."
+            cat <<EOF >> $APACHE_CONFIG
+<Directory /var/www/html/prestashop/upload>
+    php_admin_flag engine off
+</Directory>
+EOF
+            sendLog "PHP engine disabled in the upload directory"
+        fi
+    fi
+
+    if [ -d "/var/www/html/prestashop/download" ]; then
+        if [ "$(grep -iq '<Directory /var/www/html/prestashop/download>' $APACHE_CONFIG)" ]; then
+            echo "Adding configuration to disable the php engine in the download directory..."
+            cat <<EOF >> $APACHE_CONFIG
+<Directory /var/www/html/prestashop/download>
+    php_admin_flag engine off
+</Directory>
+EOF
+            sendLog "PHP engine disabled in the download directory"
+        fi
+    fi
+
 
     # Disable directory listing check if it might say Options Indexes FollowSymLinks in the apache config and change it to Options -Indexes
     if [ -z "$(grep -i '^[^#]*Options -Indexes +FollowSymLinks' $APACHE_CONFIG)" ]; then
         echo "Adding configuration to disable directory listing..."
         sed -i 's/^\([[:space:]]*Options\)[[:space:]]Indexes[[:space:]]FollowSymLinks/\1 -Indexes +FollowSymLinks/g' $APACHE_CONFIG
+        sendLog "Directory listing disabled"
     fi
 
     # Disable TRACK and TRACE methods
     if [ "$(grep -iq 'TraceEnable off' $APACHE_CONFIG)" ]; then
         echo "Adding configuration to disable TRACK and TRACE methods..."
         echo "TraceEnable off" >> $APACHE_CONFIG
+        sendLog "TRACK and TRACE methods disabled"
     fi
 
 
@@ -644,47 +750,33 @@ EOF
     if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/(.*\.class\.php|.*\.inc\.php)$' $APACHE_CONFIG)" ]; then
         echo "Adding configuration to disable access to .class.php and .inc.php files..."
         echo "RedirectMatch 404 ^/prestashop/(.*\.class\.php|.*\.inc\.php)$" >> $APACHE_CONFIG
+        sendLog "Access to .class.php and .inc.php files disabled"
     fi
 
     # dont allow access to any file in the /phpmyadmin directory
     if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/phpmyadmin' $APACHE_CONFIG)" ]; then
         echo "Adding configuration to disable access to the phpmyadmin directory..."
         echo "RedirectMatch 404 ^/prestashop/phpmyadmin" >> $APACHE_CONFIG
-    fi
-
-    # disable the php engine in the /var/www/html/prestashop/upload directory and download directory
-    if [ "$(grep -iq '<Directory /var/www/html/prestashop/upload>' $APACHE_CONFIG)" ]; then
-        echo "Adding configuration to disable the php engine in the upload directory..."
-        cat <<EOF >> $APACHE_CONFIG
-<Directory /var/www/html/prestashop/upload>
-    php_admin_flag engine off
-</Directory>
-EOF
-    fi
-
-    if [ "$(grep -iq '<Directory /var/www/html/prestashop/download>' $APACHE_CONFIG)" ]; then
-        echo "Adding configuration to disable the php engine in the download directory..."
-        cat <<EOF >> $APACHE_CONFIG
-<Directory /var/www/html/prestashop/download>
-    php_admin_flag engine off
-</Directory>
-EOF
+        sendLog "Access to phpmyadmin directory disabled"
     fi
 
 
     # find the configuration file
     PHP_CONF=$(php -i | grep 'Loaded Configuration File' | cut -d' ' -f5)
+    sendLog "PHP configuration file found at $PHP_CONF"
 
     # check if expose_php is set to off in the php.ini file
     if [ -z "$(grep -i 'expose_php = Off' $PHP_CONF)" ]; then
         echo "Adding configuration to disable expose_php..."
         sed -i 's/^\([[:space:]]*expose_php\)[[:space:]]*=.*/\1 = Off/g' $PHP_CONF
+        sendLog "expose_php disabled"
     fi
 
     # disable allow_url_fopen in the php.ini file
     if [ -z "$(grep -i 'allow_url_fopen = Off' $PHP_CONF)" ]; then
         echo "Adding configuration to disable allow_url_fopen..."
         sed -i 's/^\([[:space:]]*allow_url_fopen\)[[:space:]]*=.*/\1 = Off/g' $PHP_CONF
+        sendLog "allow_url_fopen disabled"
     fi
 
     # Add a script to change the user prestashop uses to connect to the database
@@ -774,6 +866,7 @@ EOF
     if [ $MYSQL == "true" ]; then
         # Create a new database user for prestashop
         bash $SCRIPT_DIR/linux/change_db_user.sh $MYSQL_ROOT_PASSWORD
+        sendLog "Prestashop database user created, and configuration updated"
 
         # disable smarty cache in the prestashop configuration table
         # first get the db prefix from the two possible locations
@@ -797,6 +890,7 @@ EOF
                 mysql -u root -p$MYSQL_ROOT_PASSWORD -e "UPDATE ${DB_PREFIX}configuration SET value='0' WHERE name='PS_SMARTY_CACHE';"
             fi
             echo "Smarty cache disabled in the database"
+            sendLog "Smarty cache disabled in the database"
         fi
     fi
 
@@ -807,12 +901,15 @@ EOF
     # Set files to 644
     find "$TARGET_DIR" -type f -exec chmod 644 {} \;
     echo "Permissions set: Directories (755), Files (644) in $TARGET_DIR"
+    sendLog "Permissions set: Directories (755), Files (644) in $TARGET_DIR"
 
 
     # restart apache
     systemctl restart apache2
     systemctl restart httpd
+    sendLog "Apache restarted"
 
+    #TODO: Ensure that the backup does not already exist
     # Create backups of the new changes
     if [ ! -d "/bkp/new" ]; then
         mkdir -p /bkp/new
@@ -821,14 +918,17 @@ EOF
     # Zip up the /var/www/html directory and move it to /bkp
     echo "Zipping up /var/www/html..."
     tar -czf /bkp/new/html.tar.gz /var/www/html
+    sendLog "Prestashop directory backed up"
 
     # zip up the apache config directory and move it to /bkp
     if [ -d "/etc/httpd" ]; then
         echo "Zipping up /etc/httpd..."
         tar -czf /bkp/new/httpd.tar.gz /etc/httpd
+        sendLog "Apache config backed up"
     elif [ -d "/etc/apache2" ]; then
         echo "Zipping up /etc/apache2..."
         tar -czf /bkp/new/apache2.tar.gz /etc/apache2
+        sendLog "Apache config backed up"
     fi
 
     if [ "$MYSQL" == "true" ]; then
@@ -838,12 +938,14 @@ EOF
         else
             mysqldump -u root -p$MYSQL_ROOT_PASSWORD --all-databases > /bkp/new/ecomm.sql
         fi
+        sendLog "MySQL database backed up"
     fi
 
     # copy the backup folder to random location
     BKP_DIR="/etc/$(openssl rand -hex 4)"
     mkdir -p /etc/$BKP_DIR
     cp -r /bkp /etc/$BKP_DIR
+    sendLog "Backup copied to /etc/$BKP_DIR"
 }
 
 cronjail() {
@@ -860,6 +962,7 @@ cronjail() {
     if [ -f "/etc/cron.deny" ]; then
         mv /etc/cron.deny $CCDC_ETC/cron.jail
         cat /dev/null > /etc/cron.deny
+        sendLog "cron.deny moved to $CCDC_ETC/cron.jail"
     fi
 
     # if there is a cron.deny.rpmsave file, copy it to the jail directory, and rename it to cron.deny
@@ -867,64 +970,67 @@ cronjail() {
         cp /etc/cron.deny.rpmsave $CCDC_ETC/cron.jail
         cat /dev/null > /etc/cron.deny.rpmsave
         mv /etc/cron.deny.rpmsave /etc/cron.deny
+        sendLog "cron.deny.rpmsave moved to $CCDC_ETC/cron.jail"
     fi
 
     if [ -f "/etc/cron.allow" ]; then
         mv /etc/cron.allow $CCDC_ETC/cron.jail
         cat /dev/null > /etc/cron.allow
+        sendLog "cron.allow moved to $CCDC_ETC/cron.jail"
     fi
 
     if [ -f "/etc/crontab" ]; then
         mv /etc/crontab $CCDC_ETC/cron.jail
         cat /dev/null > /etc/crontab
+        sendLog "crontab moved to $CCDC_ETC/cron.jail"
     fi
 
-    if [ -d "/etc/cron.d" ]; then
+    if [ -d "/etc/cron.d" ] && [ "$(ls -A /etc/cron.d)" ]; then
         mkdir -p $CCDC_ETC/cron.jail/cron.d
         mv /etc/cron.d/* $CCDC_ETC/cron.jail/cron.d
-        rm -rf /etc/cron.d/*
+        sendLog "cron.d moved to $CCDC_ETC/cron.jail"
     fi
 
-    if [ -d "/etc/cron.daily" ]; then
+    if [ -d "/etc/cron.daily" ] && [ "$(ls -A /etc/cron.daily)" ]; then
         mkdir -p $CCDC_ETC/cron.jail/daily
         mv /etc/cron.daily/* $CCDC_ETC/cron.jail/daily
-        rm -rf /etc/cron.daily/*
+        sendLog "cron.daily moved to $CCDC_ETC/cron.jail"
     fi
 
-    if [ -d "/etc/cron.hourly" ]; then
+    if [ -d "/etc/cron.hourly" ] && [ "$(ls -A /etc/cron.hourly)" ]; then
         mkdir -p $CCDC_ETC/cron.jail/hourly
         mv /etc/cron.hourly/* $CCDC_ETC/cron.jail/hourly
-        rm -rf /etc/cron.hourly/*
+        sendLog "cron.hourly moved to $CCDC_ETC/cron.jail"
     fi
 
-    if [ -d "/etc/cron.monthly" ]; then
+    if [ -d "/etc/cron.monthly" ] && [ "$(ls -A /etc/cron.monthly)" ]; then
         mkdir -p $CCDC_ETC/cron.jail/monthly
         mv /etc/cron.monthly/* $CCDC_ETC/cron.jail/monthly
-        rm -rf /etc/cron.monthly/*
+        sendLog "cron.monthly moved to $CCDC_ETC/cron.jail"
     fi
 
-    if [ -d "/etc/cron.weekly" ]; then
+    if [ -d "/etc/cron.weekly" ] && [ "$(ls -A /etc/cron.weekly)" ]; then
         mkdir -p $CCDC_ETC/cron.jail/weekly
         mv /etc/cron.weekly/* $CCDC_ETC/cron.jail/weekly
-        rm -rf /etc/cron.weekly/*
+        sendLog "cron.weekly moved to $CCDC_ETC/cron.jail"
     fi
 
-    if [ -d "/var/spool/cron" ]; then
+    if [ -d "/var/spool/cron" ] && [ "$(ls -A /var/spool/cron)" ]; then
         mkdir -p $CCDC_ETC/cron.jail/spool
         mv /var/spool/cron/* $CCDC_ETC/cron.jail/spool
-        rm -rf /var/spool/cron/*
+        sendLog "cron spool moved to $CCDC_ETC/cron.jail"
     fi
 
-    if [ -d "/var/spool/at" ]; then
+    if [ -d "/var/spool/at" ] && [ "$(ls -A /var/spool/at)" ]; then
         mkdir -p $CCDC_ETC/cron.jail/at
         mv /var/spool/at/* $CCDC_ETC/cron.jail/at
-        rm -rf /var/spool/at/*
+        sendLog "at spool moved to $CCDC_ETC/cron.jail"
     fi
 
-    if [ -d "/var/spool/atjobs" ]; then
+    if [ -d "/var/spool/atjobs" ] && [ "$(ls -A /var/spool/atjobs)" ]; then
         mkdir -p $CCDC_ETC/cron.jail/atjobs
         mv /var/spool/atjobs/* $CCDC_ETC/cron.jail/atjobs
-        rm -rf /var/spool/atjobs/*
+        sendLog "atjobs spool moved to $CCDC_ETC/cron.jail"
     fi
 
     # Restart the cron service
@@ -932,6 +1038,7 @@ cronjail() {
     systemctl restart cron
     # Restart the atd service
     systemctl restart atd
+    sendLog "Cron and atd services restarted"
 }
 
 modsecurity() {
