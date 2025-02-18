@@ -34,13 +34,11 @@ sendError(){
     if [ ! -f $LOGFILE ]; then
         touch $LOGFILE
     fi
-    if [ -z "$1" ] && [ -t 0 ]; then
+    if [ -z "$1" ]; then
         echo "No message provided to log"
         return 1
     fi
-    while read -r line; do
-        echo -e "$RED$(date +"%x %X") - ERROR: $line$NC" >> $LOGFILE
-    done <<< "$1"
+    echo "$RED$(date +"%x %X") - ERROR: $1$NC" >> $LOGFILE
 }
 
 
@@ -1707,27 +1705,27 @@ check_for_malicious_bash() {
     done
 }
 
-cronjail 2>&1 | sendError
-check_for_malicious_bash 2>&1 | sendError
-prescripts 2>&1 | sendError
-configure_networking 2>&1 | sendError
-iptables 2>&1 | sendError
+cronjail 2> >(sendError)
+check_for_malicious_bash 2> >(sendError)
+prescripts 2> >(sendError)
+configure_networking 2> >(sendError)
+iptables 2> >(sendError)
 if [ "$APACHE" == "true" ]; then
-    prestashop_config 2>&1 | sendError
+    prestashop_config 2> >(sendError)
 fi
-legalese 2>&1 | sendError
-harden 2>&1 | sendError
-remove_unneeded_services 2>&1 | sendError
-update_packages 2>&1 | sendError
-ipv6_config 2>&1 | sendError
-install_packages 2>&1 | sendError
+legalese 2> >(sendError)
+harden 2> >(sendError)
+remove_unneeded_services 2> >(sendError)
+update_packages 2> >(sendError)
+ipv6_config 2> >(sendError)
+install_packages 2> >(sendError)
 
-initialize_clamav 2>&1 | sendError  & 
-configure_and_init_aide 2>&1 | sendError &
-install_additional_scripts 2>&1 | sendError &
-initialize_auditd 2>&1 | sendError &
-netconfig_script 2>&1 | sendError &
-create_deny_access_script 2>&1 | sendError &
+initialize_clamav 2> >(sendError)  & 
+configure_and_init_aide 2> >(sendError) &
+install_additional_scripts 2> >(sendError) &
+initialize_auditd 2> >(sendError) &
+netconfig_script 2> >(sendError) &
+create_deny_access_script 2> >(sendError) &
 
 wait
 
