@@ -20,6 +20,7 @@ GREEN='\033[0;32m'
 
 sendLog(){
     if [ ! -f $LOGFILE ]; then
+        mkdir -p $CCDC_DIR/logs
         touch $LOGFILE
     fi
     if [ -z "$1" ]; then
