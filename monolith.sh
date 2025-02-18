@@ -34,11 +34,13 @@ sendError(){
     if [ ! -f $LOGFILE ]; then
         touch $LOGFILE
     fi
-    if [ -z "$1" ]; then
+    if [ -z "$1" ] && [ -t 0 ]; then
         echo "No message provided to log"
         return 1
     fi
-    echo "$RED$(date +"%x %X") - ERROR: $1$NC" >> $LOGFILE
+    while read -r line; do
+        echo -e "$RED$(date +"%x %X") - ERROR: $line$NC" >> $LOGFILE
+    done <<< "$1"
 }
 
 
