@@ -1705,27 +1705,27 @@ check_for_malicious_bash() {
     done
 }
 
-cronjail 2> >(sendError)
-check_for_malicious_bash 2> >(sendError)
-prescripts 2> >(sendError)
-configure_networking 2> >(sendError)
-iptables 2> >(sendError)
+cronjail
+check_for_malicious_bash
+prescripts
+configure_networking
+iptables
 if [ "$APACHE" == "true" ]; then
-    prestashop_config 2> >(sendError)
+    prestashop_config
 fi
-legalese 2> >(sendError)
-harden 2> >(sendError)
-remove_unneeded_services 2> >(sendError)
-update_packages 2> >(sendError)
-ipv6_config 2> >(sendError)
-install_packages 2> >(sendError)
+legalese 
+harden 
+remove_unneeded_services 
+update_packages 
+ipv6_config 
+install_packages 
 
-initialize_clamav 2> >(sendError)  & 
-configure_and_init_aide 2> >(sendError) &
-install_additional_scripts 2> >(sendError) &
-initialize_auditd 2> >(sendError) &
-netconfig_script 2> >(sendError) &
-create_deny_access_script 2> >(sendError) &
+initialize_clamav   & 
+configure_and_init_aide  &
+install_additional_scripts  &
+initialize_auditd  &
+netconfig_script  &
+create_deny_access_script  &
 
 wait
 
