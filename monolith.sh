@@ -70,9 +70,9 @@ prescripts(){
 
                 # Check if the password is correct, it also may be blank
                 if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
-                    CORRECT_PASS=$(mysql -u root -e "exit")
+                    CORRECT_PASS=$(mysql -u root -e "exit" 2>/dev/stdout)
                 else
-                    CORRECT_PASS=$(mysql -u root -p$MYSQL_ROOT_PASSWORD -e "exit")
+                    CORRECT_PASS=$(mysql -u root -p$MYSQL_ROOT_PASSWORD -e "exit" 2>/dev/stdout)
                 fi
                 ATTEMPTS=$((ATTEMPTS+1))
             done
@@ -437,9 +437,9 @@ while ([ ! -z "$CORRECT_PASS" ]) && [ $ATTEMPTS -le 2 ]; do
 
     # Check if the password is correct, it also may be blank
     if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
-        CORRECT_PASS=$(mysql -u root -e "exit")
+        CORRECT_PASS=$(mysql -u root -e "exit" 2>/dev/stdout)
     else
-        CORRECT_PASS=$(mysql -u root -p$MYSQL_ROOT_PASSWORD -e "exit")
+        CORRECT_PASS=$(mysql -u root -p$MYSQL_ROOT_PASSWORD -e "exit" 2>/dev/stdout)
     fi
     ATTEMPTS=$((ATTEMPTS+1))
 done
@@ -479,9 +479,9 @@ while ([ ! -z "$CORRECT_PASS" ]) && [ $ATTEMPTS -le 2 ]; do
 
     # Check if the password is correct, it also may be blank
     if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
-        CORRECT_PASS=$(mysql -u root -e "exit")
+        CORRECT_PASS=$(mysql -u root -e "exit" 2>/dev/stdout)
     else
-        CORRECT_PASS=$(mysql -u root -p$MYSQL_ROOT_PASSWORD -e "exit")
+        CORRECT_PASS=$(mysql -u root -p$MYSQL_ROOT_PASSWORD -e "exit" 2>/dev/stdout)
     fi
     ATTEMPTS=$((ATTEMPTS+1))
 done
