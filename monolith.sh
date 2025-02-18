@@ -75,6 +75,7 @@ prescripts(){
                     CORRECT_PASS=$(mysql -u root -p$MYSQL_ROOT_PASSWORD -e "exit" 2>/dev/stdout)
                 fi
                 ATTEMPTS=$((ATTEMPTS+1))
+                echo
             done
 
             if [ ! -z "$CORRECT_PASS" ]; then
