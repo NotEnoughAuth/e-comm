@@ -830,7 +830,7 @@ if [ -z "$CURRENT_DB_NAME" ]; then
 fi
 
 # Generate random password for the new MySQL user
-NEW_USER="prestashop_user_$(openssl rand -hex 2)"
+NEW_USER="ps_user_$(openssl rand -hex 4)"
 NEW_PASS=$(openssl rand -base64 64)
 
 # Fileter out special characters from the password
