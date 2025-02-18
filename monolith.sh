@@ -533,7 +533,7 @@ EOF
     fi
 
     # Get the apache config file
-    if [ -d "/etc/httpd"]; then
+    if [ -d "/etc/httpd" ]; then
         APACHE_CONFIG="/etc/httpd/conf/httpd.conf"
     elif [ -d "/etc/apache2" ]; then
         APACHE_CONFIG="/etc/apache2/apache2.conf"
