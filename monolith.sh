@@ -63,6 +63,7 @@ prescripts(){
         if [ $(which mysql) ]; then
             PRESTASHOP="true"
             ATTEMPTS=0
+            CORRECT_PASS="random_text"
             while ([ ! -z "$CORRECT_PASS" ]) && [ $ATTEMPTS -le 2 ]; do
                 # Get the MySQL root password
                 read -p "Enter the MySQL root password: " -s MYSQL_ROOT_PASSWORD
@@ -429,7 +430,7 @@ if [ ! -d /var/www/html/prestashop ]; then
     echo "Prestashop is not installed on this system"
     exit 1
 fi
-
+CORRECT_PASS="random_text"
 while ([ ! -z "$CORRECT_PASS" ]) && [ $ATTEMPTS -le 2 ]; do
     # Get the MySQL root password
     read -p "Enter the MySQL root password: " -s MYSQL_ROOT_PASSWORD
@@ -471,7 +472,7 @@ if [ ! -d /var/www/html/prestashop ]; then
     echo "Prestashop is not installed on this system"
     exit 1
 fi
-
+CORRECT_PASS="random_text"
 while ([ ! -z "$CORRECT_PASS" ]) && [ $ATTEMPTS -le 2 ]; do
     # Get the MySQL root password
     read -p "Enter the MySQL root password: " -s MYSQL_ROOT_PASSWORD
