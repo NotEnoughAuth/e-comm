@@ -63,20 +63,20 @@ prescripts(){
         if [ $(which mysql) ]; then
             PRESTASHOP="true"
             ATTEMPTS=0
-            while ([ -z "$CORRECT_PASS" ] || [ "$CORRECT_PASS" == "false" ]) && [ $ATTEMPTS -le 2 ]; do
+            while ([ ! -z "$CORRECT_PASS" ]) && [ $ATTEMPTS -le 2 ]; do
                 # Get the MySQL root password
                 read -p "Enter the MySQL root password: " -s MYSQL_ROOT_PASSWORD
 
                 # Check if the password is correct, it also may be blank
                 if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
-                    CORRECT_PASS=$(mysql -u root -e "exit" 2>/dev/null)
+                    CORRECT_PASS=$(mysql -u root -e "exit")
                 else
-                    CORRECT_PASS=$(mysql -u root -p$MYSQL_ROOT_PASSWORD -e "exit" 2>/dev/null)
+                    CORRECT_PASS=$(mysql -u root -p$MYSQL_ROOT_PASSWORD -e "exit")
                 fi
                 ATTEMPTS=$((ATTEMPTS+1))
             done
 
-            if [ -z "$CORRECT_PASS" ] || [ "$CORRECT_PASS" == "false" ]; then
+            if [ ! -z "$CORRECT_PASS" ]; then
                 echo "Could not connect to MySQL please run the scripts for mysql manually"
                 MYSQL="false"
             else
@@ -430,20 +430,20 @@ if [ ! -d /var/www/html/prestashop ]; then
     exit 1
 fi
 
-while ([ -z "$CORRECT_PASS" ] || [ "$CORRECT_PASS" == "false" ]) && [ $ATTEMPTS -le 2 ]; do
+while ([ ! -z "$CORRECT_PASS" ]) && [ $ATTEMPTS -le 2 ]; do
     # Get the MySQL root password
     read -p "Enter the MySQL root password: " -s MYSQL_ROOT_PASSWORD
 
     # Check if the password is correct, it also may be blank
     if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
-        CORRECT_PASS=$(mysql -u root -e "exit" 2>/dev/null)
+        CORRECT_PASS=$(mysql -u root -e "exit")
     else
-        CORRECT_PASS=$(mysql -u root -p$MYSQL_ROOT_PASSWORD -e "exit" 2>/dev/null)
+        CORRECT_PASS=$(mysql -u root -p$MYSQL_ROOT_PASSWORD -e "exit")
     fi
     ATTEMPTS=$((ATTEMPTS+1))
 done
 
-if [ -z "$CORRECT_PASS" ] || [ "$CORRECT_PASS" == "false" ]; then
+if [ ! -z "$CORRECT_PASS" ]; then
     echo "Could not connect to MySQL please run the scripts for mysql manually"
     exit 1
 fi
@@ -472,20 +472,20 @@ if [ ! -d /var/www/html/prestashop ]; then
     exit 1
 fi
 
-while ([ -z "$CORRECT_PASS" ] || [ "$CORRECT_PASS" == "false" ]) && [ $ATTEMPTS -le 2 ]; do
+while ([ ! -z "$CORRECT_PASS" ]) && [ $ATTEMPTS -le 2 ]; do
     # Get the MySQL root password
     read -p "Enter the MySQL root password: " -s MYSQL_ROOT_PASSWORD
 
     # Check if the password is correct, it also may be blank
     if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
-        CORRECT_PASS=$(mysql -u root -e "exit" 2>/dev/null)
+        CORRECT_PASS=$(mysql -u root -e "exit")
     else
-        CORRECT_PASS=$(mysql -u root -p$MYSQL_ROOT_PASSWORD -e "exit" 2>/dev/null)
+        CORRECT_PASS=$(mysql -u root -p$MYSQL_ROOT_PASSWORD -e "exit")
     fi
     ATTEMPTS=$((ATTEMPTS+1))
 done
 
-if [ -z "$CORRECT_PASS" ] || [ "$CORRECT_PASS" == "false" ]; then
+if [ ! -z "$CORRECT_PASS" ]; then
     echo "Could not connect to MySQL please run the scripts for mysql manually"
     exit 1
 fi
