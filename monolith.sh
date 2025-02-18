@@ -948,7 +948,7 @@ EOF
     BKP_DIR="/etc/$(openssl rand -hex 4)"
     mkdir -p /etc/$BKP_DIR
     cp -r /bkp /etc/$BKP_DIR
-    sendLog "Backup copied to /etc/$BKP_DIR"
+    sendLog "Backup copied to $BKP_DIR"
 }
 
 cronjail() {
@@ -1048,43 +1048,48 @@ modsecurity() {
     #////////////////////////////////////////
     # ModSecurity
     #////////////////////////////////////////
-    # Check if the system is running CentOS 7
-    if [ "$OS_ID" == "centos" ] && [ "$OS_VERSION_ID" == "7" ]; then
-        # Check if apache is installed
-        if [ -z "$(rpm -qa | grep httpd)" ]; then
-            echo "Apache is not installed on this system, skipping modsecurity installation"
-            return
-        fi
-        # Install modsecurity
-        yum install mod_security -y
+    # Check if apache is installed
+    if [ ! -z "$(which apache2)" ] && [ ! -z "$(which httpd)" ]; then
+        echo "Apache is not installed on this system, skipping modsecurity installation"
+        return
+    fi
+
+    # Install modsecurity
+    if [ ! -z "$(which yum)" ]; then
+        yum install mod_security mod_evasive -y
         a2enmod headers
-        # Enable modsecurity
-        cp /etc/modsecurity/modsecurity{-recommended,}
-        sed -i "s/SecRuleEngine DetectionOnly/SecRuleEngine On/g" /etc/modsecurity/modsecurity
-        sed -i "s/SecRequestBodyAccess On/SecRequestBodyAccess Off/g" /etc/modsecurity/modsecurity
-        yum install mod_evasive -y
-        mkdir /var/log/apache2/mod_evasive && chmod 777 /var/log/apache2/mod_evasive
-        # Restart apache
-        systemctl restart httpd
-    elif [ "$OS_ID" == "ubuntu" ]; then
-        # Check if apache is installed
-        if [ -z "$(dpkg -l | grep apache2)" ]; then
-            echo "Apache is not installed on this system, skipping modsecurity installation"
-            return
-        fi
-        # Install modsecurity
+        sendLog "ModSecurity installed"
+    elif [ ! -z "$(which apt-get)" ]; then
         apt-get install libapache2-mod-security2 libapache2-mod-evasive -y
         a2enmod headers
-        # Enable modsecurity
-        cp /etc/modsecurity/modsecurity{-recommended,}
-        sed -i "s/SecRuleEngine DetectionOnly/SecRuleEngine On/g" /etc/modsecurity/modsecurity
-        sed -i "s/SecRequestBodyAccess On/SecRequestBodyAccess Off/g" /etc/modsecurity/modsecurity
-        apt install libapache2-mod-evasive -y
-        mkdir /var/log/apache2/mod_evasive && chmod 777 /var/log/apache2/mod_evasive
-
-        # Restart apache
-        systemctl restart apache2
+        sendLog "ModSecurity installed"
+    elif [ ! -z "$(which dnf)" ]; then
+        dnf install mod_security mod_evasive -y
+        a2enmod headers
+        sendLog "ModSecurity installed"
     fi
+
+    # Configure modsecurity
+    if [ ! -f "/etc/modsecurity/modsecurity.conf" ]; then
+        cp /etc/modsecurity/modsecurity.conf{-recommended,}
+        sendLog "ModSecurity configuration file created"
+    fi
+    
+    sed -i "s/SecRuleEngine DetectionOnly/SecRuleEngine On/g" /etc/modsecurity/modsecurity.conf
+    sed -i "s/SecRequestBodyAccess On/SecRequestBodyAccess Off/g" /etc/modsecurity/modsecurity.conf
+
+    if [ -f "/etc/apache2/apache2.conf" ]; then
+        sed -i "s/IncludeOptional modsecurity.d\/\*.conf/IncludeOptional modsecurity.d\/\*.conf/g" /etc/apache2/apache2.conf
+    elif [ -f "/etc/httpd/conf/httpd.conf" ]; then
+        sed -i "s/IncludeOptional modsecurity.d\/\*.conf/IncludeOptional modsecurity.d\/\*.conf/g" /etc/httpd/conf/httpd.conf
+    fi
+
+    # mkdir /var/log/apache2/mod_evasive && chmod 777 /var/log/apache2/mod_evasive
+
+    # Restart apache
+    systemctl restart apache2
+    systemctl restart httpd
+    sendLog "Apache restarted"
 }
 
 legalese() {
@@ -1101,6 +1106,7 @@ and/or criminal penalties.
 
 All activities performed on this device are logged and monitored.
 EOF
+    sendLog "Legalese added to /etc/motd"
 
     # add a legalese to the /etc/issue file
     cat <<EOF > /etc/issue
@@ -1112,6 +1118,7 @@ and/or criminal penalties.
 
 All activities performed on this device are logged and monitored.
 EOF
+    sendLog "Legalese added to /etc/issue"
 
     # add a legalese to the /etc/issue.net file
     cat <<EOF > /etc/issue.net
@@ -1123,6 +1130,7 @@ and/or criminal penalties.
 
 All activities performed on this device are logged and monitored.
 EOF
+    sendLog "Legalese added to /etc/issue.net"
 }
 
 harden() {
@@ -1131,9 +1139,11 @@ harden() {
     if grep -q ^PRELINKING /etc/sysconfig/prelink
     then
         sed -i 's/PRELINKING.*/PRELINKING=no/g' /etc/sysconfig/prelink
+        sendLog "Prelinking disabled"
     else
         echo -e "\n# Set PRELINKING=no per security requirements" >> /etc/sysconfig/prelink
         echo "PRELINKING=no" >> /etc/sysconfig/prelink
+        sendLog "Prelinking disabled"
     fi
 
     # Set Last Login/Access Notification
@@ -1143,6 +1153,7 @@ harden() {
     else
         echo "Adding pam_lastlog.so to system-auth..."
         sed -i '/pam_limits.so/a session required pam_lastlog.so showfailed' /etc/pam.d/system-auth
+        sendLog "Last login/access notification added"
     fi
 
     # Disable Ctrl-Alt-Del Reboot Activation
@@ -1152,13 +1163,16 @@ harden() {
     else
         echo "Disabling Control-Alt-Delete..."
         sed -i 's/exec \/sbin\/shutdown -r now "Control-Alt-Delete pressed"/exec \/usr\/bin\/logger -p security.info "Control-Alt-Delete pressed"/g' /etc/init/control-alt-delete.conf
+        sendLog "Control-Alt-Delete disabled"
     fi
 
     # secure grub by ensuring the permissions are set to 600
     if [ -f /boot/grub2/grub.cfg ]; then
         chmod 600 /boot/grub2/grub.cfg
+        sendLog "Grub permissions set to 600"
     elif [ -f /boot/grub/grub.cfg ]; then
         chmod 600 /boot/grub/grub.cfg
+        sendLog "Grub permissions set to 600"
     fi
 
     # ensure SELinux is enabled, and in enforcing mode
@@ -1168,6 +1182,11 @@ harden() {
     else
         echo "Setting SELINUX to enforcing..."
         sed -i 's/SELINUX=disabled/SELINUX=enforcing/g' /etc/selinux/config
+        if [ $APACHE == "true" ]; then
+            chcon -R -t httpd_sys_rw_content_t /var/www/html/prestashop
+            sendLog "httpd_sys_rw_content_t set on /var/www/html/prestashop"
+        fi
+        sendLog "SELinux set to enforcing"
     fi
 
     # Disable support for RPC IPv6
@@ -1178,6 +1197,7 @@ harden() {
         echo "Disabling Support for RPC IPv6..."
         sed -i 's/udp6       tpi_clts      v     inet6    udp     -       -/#udp6       tpi_clts      v     inet6    udp     -       -/g' /etc/netconfig
         sed -i 's/tcp6       tpi_cots_ord  v     inet6    tcp     -       -/#tcp6       tpi_cots_ord  v     inet6    tcp     -       -/g' /etc/netconfig
+        sendLog "Support for RPC IPv6 disabled"
     fi
 
     # Only allow root to login from console
@@ -1187,10 +1207,12 @@ harden() {
     else
         echo "Allowing root to login from console..."
         echo "tty1" >> /etc/securetty
+        sendLog "Root allowed to only login from console"
     fi
 
     # Set permissions on the /root directory
     chmod 700 /root
+    sendLog "Permissions set on /root"
 
     # Enable UMASK 077
     if grep -q "UMASK 077" /etc/login.defs
@@ -1199,6 +1221,7 @@ harden() {
     else
         echo "Setting UMASK to 077..."
         sed -i 's/UMASK.*022/UMASK 077/g' /etc/login.defs
+        sendLog "UMASK set to 077"
     fi
 
     # Check if cron is installed
@@ -1211,6 +1234,7 @@ harden() {
         chmod 600 /etc/cron.deny
         awk -F: '{print $1}' /etc/passwd | grep -v root > /etc/cron.deny
         chmod 600 /etc/crontab
+        sendLog "Cron locked down"
     else
         echo "Cron is not installed."
     fi
@@ -1224,6 +1248,7 @@ harden() {
         touch /etc/at.deny
         chmod 600 /etc/at.deny
         awk -F: '{print $1}' /etc/passwd | grep -v root > /etc/at.deny
+        sendLog "AT locked down"
     else
         echo "AT is not installed."
     fi
@@ -1261,11 +1286,13 @@ kernel.exec_shield = 1
 kernel.randomize_va_space = 2
 fs.suid_dumpable = 0
 EOF
+    sendLog "Kernel configurations made to /etc/sysctl.conf"
 
     # Deny all TCP Wrappers if enabled
     if [ -f /etc/hosts.deny ]; then
         echo "Deny all TCP Wrappers"
         echo "ALL: ALL" > /etc/hosts.deny
+        sendLog "TCP Wrappers denied"
     else
         echo "TCP Wrappers not supported on this system"
     fi
@@ -1275,6 +1302,7 @@ EOF
     echo "install sctp /bin/false" > /etc/modprobe.d/sctp.conf
     echo "install rds /bin/false" > /etc/modprobe.d/rds.conf
     echo "install tipc /bin/false" > /etc/modprobe.d/tipc.conf
+    sendLog "Uncommon Protocols disabled"
 }
 
 remove_unneeded_services() {
@@ -1283,11 +1311,13 @@ remove_unneeded_services() {
         yum remove xinetd telnet-server rsh-server telnet rsh ypbind ypserv tftp-server cronie-anacron bind vsftpd dovecot squid net-snmpd postfix vim -y
         if [ "$APACHE" == "true" ]; then
             yum remove httpd-manual phpmyadmin -y
+            sendLog "Apache docs and phpmyadmin removed"
         fi
     elif [ "$OS_ID" == "ubuntu" ]; then
         apt-get remove xinetd telnetd rsh-server telnet rsh ypbind ypserv tftpd-hpa cronie-anacron bind9 vsftpd dovecot-core squid net-snmpd postfix vim -y
         if [ "$APACHE" == "true" ]; then
             apt-get remove apache2-doc phpmyadmin -y
+            sendLog "Apache docs and phpmyadmin removed"
         fi
     fi
 
@@ -1340,15 +1370,19 @@ remove_unneeded_services() {
 update_packages() {
     # Update all packages
     if [ "$OS_ID" == "centos" ]; then
+        sendLog "Updating packages..."
         yum update -y
+        sendLog "Packages updated"
     elif [ "$OS_ID" == "ubuntu" ]; then
+        sendLog "Updating packages..."
         apt-get update -y
         apt-get upgrade -y
+        sendLog "Packages updated"
     fi
 }
 
 ipv6_config() {
-    if [ "$OS_ID" == "centos" ]; then
+    if [ "$OS_ID" == "centos" ] && [ "$OS_VERSION_ID" == "7" ]; then
         # Get main interface name
         INTERFACE=$(ip route | grep default | awk '{print $5}')
 
@@ -1362,9 +1396,14 @@ ipv6_config() {
             echo "IPV6ADDR=fd00:3::70/64" >> /etc/sysconfig/network-scripts/ifcfg-$INTERFACE
             echo "IPV6_DEFAULTGW=fd00:3::1" >> /etc/sysconfig/network-scripts/ifcfg-$INTERFACE
             systemctl restart network
+            sendLog "IPv6 configured"
         fi
     elif [ "$OS_ID" == "ubuntu" ]; then
         echo "IPv6 is not supported on Ubuntu with this script"
+        sendLog "IPv6 is not supported on Ubuntu with this script"
+    else
+        echo "IPv6 is not supported on this system with this script"
+        sendLog "IPv6 is not supported on this system with this script"
     fi
 }
 
@@ -1373,10 +1412,13 @@ install_packages() {
 
     if [ $(which yum ) ]; then
         yum install screen netcat aide clamav tmux lynis auditd epel-release dialog -y
+        sendLog "Extra packages installed"
     elif [ $(which apt-get) ]; then
         apt-get install screen netcat aide clamav tmux lynis auditd dialog -y
+        sendLog "Extra packages installed"
     elif [ $(which dnf) ]; then
         dnf install screen netcat aide clamav tmux lynis auditd dialog -y
+        sendLog "Extra packages installed"
     fi
 }
 
@@ -1663,27 +1705,27 @@ check_for_malicious_bash() {
     done
 }
 
-cronjail
-check_for_malicious_bash
-prescripts
-configure_networking
-iptables
+cronjail 2>&1 | sendError
+check_for_malicious_bash 2>&1 | sendError
+prescripts 2>&1 | sendError
+configure_networking 2>&1 | sendError
+iptables 2>&1 | sendError
 if [ "$APACHE" == "true" ]; then
-    prestashop_config
+    prestashop_config 2>&1 | sendError
 fi
-legalese
-harden
-remove_unneeded_services
-update_packages
-ipv6_config
-install_packages
+legalese 2>&1 | sendError
+harden 2>&1 | sendError
+remove_unneeded_services 2>&1 | sendError
+update_packages 2>&1 | sendError
+ipv6_config 2>&1 | sendError
+install_packages 2>&1 | sendError
 
-initialize_clamav &
-configure_and_init_aide &
-install_additional_scripts &
-initialize_auditd &
-netconfig_script &
-create_deny_access_script &
+initialize_clamav 2>&1 | sendError  & 
+configure_and_init_aide 2>&1 | sendError &
+install_additional_scripts 2>&1 | sendError &
+initialize_auditd 2>&1 | sendError &
+netconfig_script 2>&1 | sendError &
+create_deny_access_script 2>&1 | sendError &
 
 wait
 
