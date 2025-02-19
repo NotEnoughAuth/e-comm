@@ -1736,12 +1736,12 @@ deny_access_pid=$!
 
 #output the services that we are still waiting on, and when they complete then put an ok message next to the service
 while [ -e /proc/$clamav_pid ] || [ -e /proc/$aide_pid ] || [ -e /proc/$scripts_pid ] || [ -e /proc/$auditd_pid ] || [ -e /proc/$netconfig_pid ] || [ -e /proc/$deny_access_pid ]; do
-    echo -n "Waiting for ClamAV to initialize... $(if [ ! -e /proc/$clamav_pid ]; then echo "[$GREEN OK $NC]"; else echo "[$RED WAITING $NC]"; fi)"
-    echo -n "Waiting for AIDE to initialize... $(if [ ! -e /proc/$aide_pid ]; then echo "[$GREEN OK $NC]"; else echo "[$RED WAITING $NC]"; fi)"
-    echo -n "Waiting for additional scripts to install... $(if [ ! -e /proc/$scripts_pid ]; then echo "[$GREEN OK $NC]"; else echo "[$RED WAITING $NC]"; fi)"
-    echo -n "Waiting for Auditd to initialize... $(if [ ! -e /proc/$auditd_pid ]; then echo "[$GREEN OK $NC]"; else echo "[$RED WAITING $NC]"; fi)"
-    echo -n "Waiting for netconfig script to complete... $(if [ ! -e /proc/$netconfig_pid ]; then echo "[$GREEN OK $NC]"; else echo "[$RED WAITING $NC]"; fi)"
-    echo -n "Waiting for deny access script to complete... $(if [ ! -e /proc/$deny_access_pid ]; then echo "[$GREEN OK $NC]"; else echo "[$RED WAITING $NC]"; fi)"
+    echo -e "Waiting for ClamAV to initialize... $(if [ ! -e /proc/$clamav_pid ]; then echo -e "[$GREEN OK $NC]\n"; else echo -e "[$RED WAITING $NC]\n"; fi)"
+    echo -e "Waiting for AIDE to initialize... $(if [ ! -e /proc/$aide_pid ]; then echo -e "[$GREEN OK $NC]\n"; else echo -e "[$RED WAITING $NC]\n"; fi)"
+    echo -e "Waiting for additional scripts to install... $(if [ ! -e /proc/$scripts_pid ]; then echo -e "[$GREEN OK $NC]\n"; else echo -e "[$RED WAITING $NC]\n"; fi)"
+    echo -e "Waiting for Auditd to initialize... $(if [ ! -e /proc/$auditd_pid ]; then echo -e "[$GREEN OK $NC]\n"; else echo -e "[$RED WAITING $NC]\n"; fi)"
+    echo -e "Waiting for netconfig script to complete... $(if [ ! -e /proc/$netconfig_pid ]; then echo -e "[$GREEN OK $NC]\n"; else echo -e "[$RED WAITING $NC]\n"; fi)"
+    echo -e "Waiting for deny access script to complete... $(if [ ! -e /proc/$deny_access_pid ]; then echo -e "[$GREEN OK $NC]\n"; else echo -e "[$RED WAITING $NC]\n"; fi)"
     sleep 5
     # remove the last 6 lines
     tput cuu 6
