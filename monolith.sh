@@ -1738,6 +1738,7 @@ deny_access_pid=$!
 #output the services that we are still waiting on, and when they complete then put an ok message next to the service
 echo -e "\n\n\n\n\n\n"
 while [ -e /proc/$clamav_pid ] || [ -e /proc/$aide_pid ] || [ -e /proc/$scripts_pid ] || [ -e /proc/$auditd_pid ] || [ -e /proc/$netconfig_pid ] || [ -e /proc/$deny_access_pid ]; do
+    clear
     printf "Waiting for ClamAV to initialize... $(if [ ! -e /proc/$clamav_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
     printf "Waiting for AIDE to initialize... $(if [ ! -e /proc/$aide_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
     printf "Waiting for additional scripts to install... $(if [ ! -e /proc/$scripts_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
@@ -1746,7 +1747,6 @@ while [ -e /proc/$clamav_pid ] || [ -e /proc/$aide_pid ] || [ -e /proc/$scripts_
     printf "Waiting for deny access script to complete... $(if [ ! -e /proc/$deny_access_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
     sleep 5
     # remove the last 6 lines
-    tput cuu 6
 done
 
 echo "Finished running init.sh, please reboot the system to apply changes"
