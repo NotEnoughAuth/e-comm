@@ -1709,9 +1709,9 @@ check_for_malicious_bash() {
 
 
 # Fancy GUI
-cronjail &
+cronjail > /dev/null 2>&1 &
 cronjail_pid=$!
-check_for_malicious_bash &
+check_for_malicious_bash > /dev/null 2>&1 &
 malicious_bash_pid=$!
 
 #output the services that we are still waiting on, and when they complete then put an ok message next to the service
@@ -1723,7 +1723,7 @@ while [ -e /proc/$cronjail_pid ] || [ -e /proc/$malicious_bash_pid ]; do
 done
 
 
-prescripts &
+prescripts > /dev/null 2>&1 &
 prescripts_pid=$!
 
 #output the services that we are still waiting on, and when they complete then put an ok message next to the service
@@ -1736,7 +1736,7 @@ while [ -e /proc/$prescripts_pid ]; do
 done
 
 
-configure_networking &
+configure_networking > /dev/null 2>&1 &
 networking_pid=$!
 
 #output the services that we are still waiting on, and when they complete then put an ok message next to the service
@@ -1749,7 +1749,7 @@ while [ -e /proc/$networking_pid ]; do
     sleep 5
 done
 
-iptables &
+iptables > /dev/null 2>&1 &
 iptables_pid=$!
 
 #output the services that we are still waiting on, and when they complete then put an ok message next to the service
@@ -1764,7 +1764,7 @@ while [ -e /proc/$iptables_pid ]; do
 done
 
 if [ "$APACHE" == "true" ]; then
-    prestashop_config &
+    prestashop_config > /dev/null 2>&1 &
     prestashop_pid=$!
 
     #output the services that we are still waiting on, and when they complete then put an ok message next to the service
@@ -1780,7 +1780,7 @@ if [ "$APACHE" == "true" ]; then
     done
 fi
 
-legalese &
+legalese > /dev/null 2>&1 &
 legalese_pid=$!
 
 #output the services that we are still waiting on, and when they complete then put an ok message next to the service
@@ -1796,7 +1796,7 @@ while [ -e /proc/$legalese_pid ]; do
     sleep 5
 done
 
-harden &
+harden > /dev/null 2>&1 &
 harden_pid=$!
 
 #output the services that we are still waiting on, and when they complete then put an ok message next to the service
@@ -1813,7 +1813,7 @@ while [ -e /proc/$harden_pid ]; do
     sleep 5
 done
 
-remove_unneeded_services &
+remove_unneeded_services > /dev/null 2>&1 &
 remove_services_pid=$!
 
 #output the services that we are still waiting on, and when they complete then put an ok message next to the service
@@ -1832,15 +1832,68 @@ while [ -e /proc/$remove_services_pid ]; do
 done
 
 
+update_packages  > /dev/null 2>&1 &
+update_packages_pid=$!
+
+#output the services that we are still waiting on, and when they complete then put an ok message next to the service
+while [ -e /proc/$update_packages_pid ]; do
+    clear
+    printf "Waiting for cronjail to complete... $(if [ ! -e /proc/$cronjail_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Checking for malicious bash scripts... $(if [ ! -e /proc/$malicious_bash_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Running pre-scripts... $(if [ ! -e /proc/$prescripts_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Configuring networking... $(if [ ! -e /proc/$networking_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Configuring iptables... $(if [ ! -e /proc/$iptables_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Configuring Prestashop... $(if [ ! -e /proc/$prestashop_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Adding legalese... $(if [ ! -e /proc/$legalese_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Hardening system... $(if [ ! -e /proc/$harden_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Removing unneeded services... $(if [ ! -e /proc/$remove_services_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Updating packages... $(if [ ! -e /proc/$update_packages_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    sleep 5
+done
 
 
+ipv6_config  > /dev/null 2>&1 &
+ipv6_config_pid=$!
+
+#output the services that we are still waiting on, and when they complete then put an ok message next to the service
+while [ -e /proc/$ipv6_config_pid ]; do
+    clear
+    printf "Waiting for cronjail to complete... $(if [ ! -e /proc/$cronjail_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Checking for malicious bash scripts... $(if [ ! -e /proc/$malicious_bash_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Running pre-scripts... $(if [ ! -e /proc/$prescripts_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Configuring networking... $(if [ ! -e /proc/$networking_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Configuring iptables... $(if [ ! -e /proc/$iptables_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Configuring Prestashop... $(if [ ! -e /proc/$prestashop_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Adding legalese... $(if [ ! -e /proc/$legalese_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Hardening system... $(if [ ! -e /proc/$harden_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Removing unneeded services... $(if [ ! -e /proc/$remove_services_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Updating packages... $(if [ ! -e /proc/$update_packages_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Configuring IPv6... $(if [ ! -e /proc/$ipv6_config_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    sleep 5
+done
+
+install_packages  > /dev/null 2>&1 &
+install_packages_pid=$!
+
+#output the services that we are still waiting on, and when they complete then put an ok message next to the service
+while [ -e /proc/$install_packages_pid ]; do
+    clear
+    printf "Waiting for cronjail to complete... $(if [ ! -e /proc/$cronjail_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Checking for malicious bash scripts... $(if [ ! -e /proc/$malicious_bash_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Running pre-scripts... $(if [ ! -e /proc/$prescripts_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Configuring networking... $(if [ ! -e /proc/$networking_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Configuring iptables... $(if [ ! -e /proc/$iptables_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Configuring Prestashop... $(if [ ! -e /proc/$prestashop_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Adding legalese... $(if [ ! -e /proc/$legalese_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Hardening system... $(if [ ! -e /proc/$harden_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Removing unneeded services... $(if [ ! -e /proc/$remove_services_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Updating packages... $(if [ ! -e /proc/$update_packages_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Configuring IPv6... $(if [ ! -e /proc/$ipv6_config_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Installing packages... $(if [ ! -e /proc/$install_packages_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    sleep 5
+done
 
 
-
-
-update_packages 
-ipv6_config 
-install_packages 
 
 initialize_clamav &
 clamav_pid=$!
@@ -1854,10 +1907,6 @@ netconfig_script &
 netconfig_pid=$!
 create_deny_access_script &
 deny_access_pid=$!
-
-
-
-
 
 
 
