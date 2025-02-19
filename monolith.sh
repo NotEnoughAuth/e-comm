@@ -1935,4 +1935,24 @@ while [ -e /proc/$clamav_pid ] || [ -e /proc/$aide_pid ] || [ -e /proc/$scripts_
     # remove the last 6 lines
 done
 
-echo "Finished running init.sh, please reboot the system to apply changes"
+clear
+printf "Waiting for cronjail to complete... [$GREEN OK $NC]\n"
+printf "Checking for malicious bash scripts... [$GREEN OK $NC]\n"
+printf "Running pre-scripts... [$GREEN OK $NC]\n"
+printf "Configuring networking... [$GREEN OK $NC]\n"
+printf "Configuring iptables... [$GREEN OK $NC]\n"
+printf "Configuring Prestashop... [$GREEN OK $NC]\n"
+printf "Adding legalese... [$GREEN OK $NC]\n"
+printf "Hardening system... [$GREEN OK $NC]\n"
+printf "Removing unneeded services... [$GREEN OK $NC]\n"
+printf "Updating packages...[$GREEN OK $NC]\n"
+printf "Configuring IPv6... [$GREEN OK $NC]\n"
+printf "Installing packages... [$GREEN OK $NC]\n"
+printf "Waiting for ClamAV to initialize... [$GREEN OK $NC]\n"
+printf "Waiting for AIDE to initialize... [$GREEN OK $NC]\n"
+printf "Waiting for additional scripts to install... [$GREEN OK $NC]\n"
+printf "Waiting for Auditd to initialize... [$GREEN OK $NC]\n"
+printf "Waiting for netconfig script to complete... [$GREEN OK $NC]\n"
+printf "Waiting for deny access script to complete... [$GREEN OK $NC]\n"
+
+printf "$RED\n\nFinished running init.sh, please reboot the system to apply changes$NC \n\n"
