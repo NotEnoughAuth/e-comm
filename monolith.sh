@@ -1729,8 +1729,8 @@ prescripts_pid=$!
 #output the services that we are still waiting on, and when they complete then put an ok message next to the service
 while [ -e /proc/$prescripts_pid ]; do
     clear
-    printf "Waiting for cronjail to complete... $(if [ ! -e /proc/$cronjail_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Checking for malicious bash scripts... $(if [ ! -e /proc/$malicious_bash_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Waiting for cronjail to complete... [$GREEN OK $NC]\n"
+    printf "Checking for malicious bash scripts...[$GREEN OK $NC]\n"
     printf "Running pre-scripts... $(if [ ! -e /proc/$prescripts_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
     sleep 5
 done
@@ -1742,9 +1742,9 @@ networking_pid=$!
 #output the services that we are still waiting on, and when they complete then put an ok message next to the service
 while [ -e /proc/$networking_pid ]; do
     clear
-    printf "Waiting for cronjail to complete... $(if [ ! -e /proc/$cronjail_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Checking for malicious bash scripts... $(if [ ! -e /proc/$malicious_bash_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Running pre-scripts... $(if [ ! -e /proc/$prescripts_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Waiting for cronjail to complete... [$GREEN OK $NC]\n"
+    printf "Checking for malicious bash scripts... [$GREEN OK $NC]\n"
+    printf "Running pre-scripts... [$GREEN OK $NC]\n"
     printf "Configuring networking... $(if [ ! -e /proc/$networking_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
     sleep 5
 done
@@ -1755,10 +1755,10 @@ iptables_pid=$!
 #output the services that we are still waiting on, and when they complete then put an ok message next to the service
 while [ -e /proc/$iptables_pid ]; do
     clear
-    printf "Waiting for cronjail to complete... $(if [ ! -e /proc/$cronjail_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Checking for malicious bash scripts... $(if [ ! -e /proc/$malicious_bash_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Running pre-scripts... $(if [ ! -e /proc/$prescripts_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Configuring networking... $(if [ ! -e /proc/$networking_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Waiting for cronjail to complete... [$GREEN OK $NC]\n"
+    printf "Checking for malicious bash scripts... [$GREEN OK $NC]\n"
+    printf "Running pre-scripts... [$GREEN OK $NC]\n"
+    printf "Configuring networking... [$GREEN OK $NC]\n"
     printf "Configuring iptables... $(if [ ! -e /proc/$iptables_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
     sleep 5
 done
@@ -1770,11 +1770,11 @@ if [ "$APACHE" == "true" ]; then
     #output the services that we are still waiting on, and when they complete then put an ok message next to the service
     while [ -e /proc/$prestashop_pid ]; do
         clear
-        printf "Waiting for cronjail to complete... $(if [ ! -e /proc/$cronjail_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-        printf "Checking for malicious bash scripts... $(if [ ! -e /proc/$malicious_bash_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-        printf "Running pre-scripts... $(if [ ! -e /proc/$prescripts_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-        printf "Configuring networking... $(if [ ! -e /proc/$networking_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-        printf "Configuring iptables... $(if [ ! -e /proc/$iptables_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+        printf "Waiting for cronjail to complete... [$GREEN OK $NC]\n"
+        printf "Checking for malicious bash scripts... [$GREEN OK $NC]\n"
+        printf "Running pre-scripts... [$GREEN OK $NC]\n"
+        printf "Configuring networking... [$GREEN OK $NC]\n"
+        printf "Configuring iptables... [$GREEN OK $NC]\n"
         printf "Configuring Prestashop... $(if [ ! -e /proc/$prestashop_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
         sleep 5
     done
@@ -1786,12 +1786,12 @@ legalese_pid=$!
 #output the services that we are still waiting on, and when they complete then put an ok message next to the service
 while [ -e /proc/$legalese_pid ]; do
     clear
-    printf "Waiting for cronjail to complete... $(if [ ! -e /proc/$cronjail_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Checking for malicious bash scripts... $(if [ ! -e /proc/$malicious_bash_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Running pre-scripts... $(if [ ! -e /proc/$prescripts_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Configuring networking... $(if [ ! -e /proc/$networking_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Configuring iptables... $(if [ ! -e /proc/$iptables_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Configuring Prestashop... $(if [ ! -e /proc/$prestashop_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Waiting for cronjail to complete... [$GREEN OK $NC]\n"
+    printf "Checking for malicious bash scripts... [$GREEN OK $NC]\n"
+    printf "Running pre-scripts... [$GREEN OK $NC]\n"
+    printf "Configuring networking... [$GREEN OK $NC]\n"
+    printf "Configuring iptables... [$GREEN OK $NC]\n"
+    printf "Configuring Prestashop... [$GREEN OK $NC]\n"
     printf "Adding legalese... $(if [ ! -e /proc/$legalese_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
     sleep 5
 done
@@ -1802,13 +1802,13 @@ harden_pid=$!
 #output the services that we are still waiting on, and when they complete then put an ok message next to the service
 while [ -e /proc/$harden_pid ]; do
     clear
-    printf "Waiting for cronjail to complete... $(if [ ! -e /proc/$cronjail_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Checking for malicious bash scripts... $(if [ ! -e /proc/$malicious_bash_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Running pre-scripts... $(if [ ! -e /proc/$prescripts_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Configuring networking... $(if [ ! -e /proc/$networking_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Configuring iptables... $(if [ ! -e /proc/$iptables_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Configuring Prestashop... $(if [ ! -e /proc/$prestashop_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Adding legalese... $(if [ ! -e /proc/$legalese_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Waiting for cronjail to complete... [$GREEN OK $NC]\n"
+    printf "Checking for malicious bash scripts... [$GREEN OK $NC]\n"
+    printf "Running pre-scripts... [$GREEN OK $NC]\n"
+    printf "Configuring networking... [$GREEN OK $NC]\n"
+    printf "Configuring iptables... [$GREEN OK $NC]\n"
+    printf "Configuring Prestashop... [$GREEN OK $NC]\n"
+    printf "Adding legalese... [$GREEN OK $NC]\n"
     printf "Hardening system... $(if [ ! -e /proc/$harden_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
     sleep 5
 done
@@ -1819,14 +1819,14 @@ remove_services_pid=$!
 #output the services that we are still waiting on, and when they complete then put an ok message next to the service
 while [ -e /proc/$remove_services_pid ]; do
     clear
-    printf "Waiting for cronjail to complete... $(if [ ! -e /proc/$cronjail_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Checking for malicious bash scripts... $(if [ ! -e /proc/$malicious_bash_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Running pre-scripts... $(if [ ! -e /proc/$prescripts_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Configuring networking... $(if [ ! -e /proc/$networking_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Configuring iptables... $(if [ ! -e /proc/$iptables_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Configuring Prestashop... $(if [ ! -e /proc/$prestashop_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Adding legalese... $(if [ ! -e /proc/$legalese_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Hardening system... $(if [ ! -e /proc/$harden_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Waiting for cronjail to complete... [$GREEN OK $NC]\n"
+    printf "Checking for malicious bash scripts... [$GREEN OK $NC]\n"
+    printf "Running pre-scripts... [$GREEN OK $NC]\n"
+    printf "Configuring networking... [$GREEN OK $NC]\n"
+    printf "Configuring iptables... [$GREEN OK $NC]\n"
+    printf "Configuring Prestashop... [$GREEN OK $NC]\n"
+    printf "Adding legalese... [$GREEN OK $NC]\n"
+    printf "Hardening system... [$GREEN OK $NC]\n"
     printf "Removing unneeded services... $(if [ ! -e /proc/$remove_services_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
     sleep 5
 done
@@ -1838,15 +1838,15 @@ update_packages_pid=$!
 #output the services that we are still waiting on, and when they complete then put an ok message next to the service
 while [ -e /proc/$update_packages_pid ]; do
     clear
-    printf "Waiting for cronjail to complete... $(if [ ! -e /proc/$cronjail_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Checking for malicious bash scripts... $(if [ ! -e /proc/$malicious_bash_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Running pre-scripts... $(if [ ! -e /proc/$prescripts_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Configuring networking... $(if [ ! -e /proc/$networking_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Configuring iptables... $(if [ ! -e /proc/$iptables_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Configuring Prestashop... $(if [ ! -e /proc/$prestashop_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Adding legalese... $(if [ ! -e /proc/$legalese_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Hardening system... $(if [ ! -e /proc/$harden_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Removing unneeded services... $(if [ ! -e /proc/$remove_services_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Waiting for cronjail to complete... [$GREEN OK $NC]\n"
+    printf "Checking for malicious bash scripts... [$GREEN OK $NC]\n"
+    printf "Running pre-scripts... [$GREEN OK $NC]\n"
+    printf "Configuring networking... [$GREEN OK $NC]\n"
+    printf "Configuring iptables... [$GREEN OK $NC]\n"
+    printf "Configuring Prestashop... [$GREEN OK $NC]\n"
+    printf "Adding legalese... [$GREEN OK $NC]\n"
+    printf "Hardening system... [$GREEN OK $NC]\n"
+    printf "Removing unneeded services... [$GREEN OK $NC]\n"
     printf "Updating packages... $(if [ ! -e /proc/$update_packages_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
     sleep 5
 done
@@ -1858,54 +1858,54 @@ ipv6_config_pid=$!
 #output the services that we are still waiting on, and when they complete then put an ok message next to the service
 while [ -e /proc/$ipv6_config_pid ]; do
     clear
-    printf "Waiting for cronjail to complete... $(if [ ! -e /proc/$cronjail_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Checking for malicious bash scripts... $(if [ ! -e /proc/$malicious_bash_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Running pre-scripts... $(if [ ! -e /proc/$prescripts_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Configuring networking... $(if [ ! -e /proc/$networking_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Configuring iptables... $(if [ ! -e /proc/$iptables_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Configuring Prestashop... $(if [ ! -e /proc/$prestashop_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Adding legalese... $(if [ ! -e /proc/$legalese_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Hardening system... $(if [ ! -e /proc/$harden_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Removing unneeded services... $(if [ ! -e /proc/$remove_services_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Updating packages... $(if [ ! -e /proc/$update_packages_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Waiting for cronjail to complete... [$GREEN OK $NC]\n"
+    printf "Checking for malicious bash scripts... [$GREEN OK $NC]\n"
+    printf "Running pre-scripts... [$GREEN OK $NC]\n"
+    printf "Configuring networking... [$GREEN OK $NC]\n"
+    printf "Configuring iptables... [$GREEN OK $NC]\n"
+    printf "Configuring Prestashop... [$GREEN OK $NC]\n"
+    printf "Adding legalese... [$GREEN OK $NC]\n"
+    printf "Hardening system... [$GREEN OK $NC]\n"
+    printf "Removing unneeded services... [$GREEN OK $NC]\n"
+    printf "Updating packages...[$GREEN OK $NC]\n"
     printf "Configuring IPv6... $(if [ ! -e /proc/$ipv6_config_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
     sleep 5
 done
 
-install_packages  > /dev/null 2>&1 &
+install_packages > /dev/null 2>&1 &
 install_packages_pid=$!
 
 #output the services that we are still waiting on, and when they complete then put an ok message next to the service
 while [ -e /proc/$install_packages_pid ]; do
     clear
-    printf "Waiting for cronjail to complete... $(if [ ! -e /proc/$cronjail_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Checking for malicious bash scripts... $(if [ ! -e /proc/$malicious_bash_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Running pre-scripts... $(if [ ! -e /proc/$prescripts_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Configuring networking... $(if [ ! -e /proc/$networking_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Configuring iptables... $(if [ ! -e /proc/$iptables_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Configuring Prestashop... $(if [ ! -e /proc/$prestashop_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Adding legalese... $(if [ ! -e /proc/$legalese_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Hardening system... $(if [ ! -e /proc/$harden_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Removing unneeded services... $(if [ ! -e /proc/$remove_services_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Updating packages... $(if [ ! -e /proc/$update_packages_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
-    printf "Configuring IPv6... $(if [ ! -e /proc/$ipv6_config_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
+    printf "Waiting for cronjail to complete... [$GREEN OK $NC]\n"
+    printf "Checking for malicious bash scripts... [$GREEN OK $NC]\n"
+    printf "Running pre-scripts... [$GREEN OK $NC]\n"
+    printf "Configuring networking... [$GREEN OK $NC]\n"
+    printf "Configuring iptables... [$GREEN OK $NC]\n"
+    printf "Configuring Prestashop... [$GREEN OK $NC]\n"
+    printf "Adding legalese... [$GREEN OK $NC]\n"
+    printf "Hardening system... [$GREEN OK $NC]\n"
+    printf "Removing unneeded services... [$GREEN OK $NC]\n"
+    printf "Updating packages...[$GREEN OK $NC]\n"
+    printf "Configuring IPv6... [$GREEN OK $NC]\n"
     printf "Installing packages... $(if [ ! -e /proc/$install_packages_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
     sleep 5
 done
 
 
 
-initialize_clamav &
+initialize_clamav > /dev/null 2>&1 &
 clamav_pid=$!
-configure_and_init_aide &
+configure_and_init_aide > /dev/null 2>&1 &
 aide_pid=$!
-install_additional_scripts &
+install_additional_scripts > /dev/null 2>&1 &
 scripts_pid=$!
-initialize_auditd &
+initialize_auditd > /dev/null 2>&1 &
 auditd_pid=$!
-netconfig_script &
+netconfig_script > /dev/null 2>&1 &
 netconfig_pid=$!
-create_deny_access_script &
+create_deny_access_script > /dev/null 2>&1 &
 deny_access_pid=$!
 
 
@@ -1913,6 +1913,18 @@ deny_access_pid=$!
 #output the services that we are still waiting on, and when they complete then put an ok message next to the service
 while [ -e /proc/$clamav_pid ] || [ -e /proc/$aide_pid ] || [ -e /proc/$scripts_pid ] || [ -e /proc/$auditd_pid ] || [ -e /proc/$netconfig_pid ] || [ -e /proc/$deny_access_pid ]; do
     clear
+    printf "Waiting for cronjail to complete... [$GREEN OK $NC]\n"
+    printf "Checking for malicious bash scripts... [$GREEN OK $NC]\n"
+    printf "Running pre-scripts... [$GREEN OK $NC]\n"
+    printf "Configuring networking... [$GREEN OK $NC]\n"
+    printf "Configuring iptables... [$GREEN OK $NC]\n"
+    printf "Configuring Prestashop... [$GREEN OK $NC]\n"
+    printf "Adding legalese... [$GREEN OK $NC]\n"
+    printf "Hardening system... [$GREEN OK $NC]\n"
+    printf "Removing unneeded services... [$GREEN OK $NC]\n"
+    printf "Updating packages...[$GREEN OK $NC]\n"
+    printf "Configuring IPv6... [$GREEN OK $NC]\n"
+    printf "Installing packages... [$GREEN OK $NC]\n"
     printf "Waiting for ClamAV to initialize... $(if [ ! -e /proc/$clamav_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
     printf "Waiting for AIDE to initialize... $(if [ ! -e /proc/$aide_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
     printf "Waiting for additional scripts to install... $(if [ ! -e /proc/$scripts_pid ]; then printf "[$GREEN OK $NC]\n"; else printf "[$RED WAITING $NC]\n"; fi)\n"
