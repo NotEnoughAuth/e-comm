@@ -906,7 +906,7 @@ EOF
 # Variables
 MYSQL_ROOT_USER="root"         # MySQL root username
 PRESTASHOP_DIR="/var/www/html/prestashop"  # Path to your PrestaShop installation
-$LOGFILE="/ccdc/logs/monolith_log.txt"
+$LOGFILE="/ccdc/logs/monolith-log.txt"
 
 # Check if MYSQL_ROOT_PASS is passed as an argument or if we need to ask for it
 if [ -z "$1" ]; then
