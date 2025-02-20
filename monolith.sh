@@ -1593,6 +1593,12 @@ install_packages() {
 }
 
 configure_and_init_aide() {
+    # Check if AIDE is installed, and configured
+    if [ -f /var/lib/aide/aide.db.gz ]; then
+        echo "AIDE already configured"
+        return
+    fi
+
     # Set up AIDE
     echo "Initializing AIDE..."
     # add /var/www/html to the aide.conf file
