@@ -1003,6 +1003,13 @@ EOF
         chmod +x $SCRIPT_DIR/linux/change_db_user.sh
 
     if [ $MYSQL == "true" ]; then
+        # Check for interactive shell
+        if [ -t 0 ]; then
+            echo -e "$DEFAULT_PRESTA_PASS\nn\n\n\n\n\n" | mysql_secure_installation
+        else
+            sendError "Non interactive shell, cannot run mysql_secure_installation"
+        fi
+
         # Create a new database user for prestashop
         bash $SCRIPT_DIR/linux/change_db_user.sh $MYSQL_ROOT_PASSWORD
 
