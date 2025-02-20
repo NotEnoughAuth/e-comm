@@ -420,89 +420,203 @@ prestashop_config(){
         echo "MySQL is not installed on this system or the password is incorrect, skipping database backup"
     fi
 
-    # Add a backup script for the database in the /ccdc/scripts/linux directory
-    cat <<'EOF' > $SCRIPT_DIR/linux/mysql_backup.sh
+    # Add a backup script to backup all config files, so /var/www/html, /etc/httpd, /etc/apache2, and /etc/my.cnf
+    cat <<'EOF' > $SCRIPT_DIR/linux/backup.sh
 #!/bin/bash
-if [[ $EUID -ne 0 ]]
-then
-  printf 'Must be run as root, exiting!\n'
-  exit 1
-fi
 
-# Check if the system is running prestashop and get the MySQL root password
-if [ ! -d /var/www/html/prestashop ]; then
-    echo "Prestashop is not installed on this system"
-    exit 1
-fi
-CORRECT_PASS="random_text"
-while ([ ! -z "$CORRECT_PASS" ]) && [ $ATTEMPTS -le 2 ]; do
-    # Get the MySQL root password
-    read -p "Enter the MySQL root password: " -s MYSQL_ROOT_PASSWORD
+# Variables
+MYSQL_ROOT_USER="root"         # MySQL root username
+$LOGFILE="/ccdc/logs/monolith_log.txt"
 
-    # Check if the password is correct, it also may be blank
-    if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
-        CORRECT_PASS=$(mysql -u root -e "exit" 2>/dev/stdout)
-    else
-        CORRECT_PASS=$(mysql -u root -p$MYSQL_ROOT_PASSWORD -e "exit" 2>/dev/stdout)
-    fi
-    ATTEMPTS=$((ATTEMPTS+1))
-done
 
-if [ ! -z "$CORRECT_PASS" ]; then
-    echo "Could not connect to MySQL please run the scripts for mysql manually"
-    exit 1
-fi
-
-# backup the mysql database save it in /bkp/new/ and give it a timestamp in the name
-if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
-    mysqldump -u root --all-databases > /bkp/new/ecomm-$(date +%s).sql
+# Check if mysql is installed on the system
+if [ $(which mysql) ]; then
+    MYSQL="true"
 else
-    mysqldump -u root -p$MYSQL_ROOT_PASSWORD --all-databases > /bkp/new/ecomm-$(date +%s).sql
+    MYSQL="false"
+fi
+
+if [ "$MYSQL" == "true" ]; then
+    # Check if MYSQL_ROOT_PASS is passed as an argument or if we need to ask for it
+    if [ -z "$1" ]; then
+        # If no password argument is provided, try to use passwordless login
+        MYSQL_COMMAND="mysql -u $MYSQL_ROOT_USER"
+
+        # Test if passwordless login is available by running a simple query
+        if ! $MYSQL_COMMAND -e "exit" > /dev/null 2>&1; then
+            # If passwordless login fails, prompt for MySQL root password
+            read -sp "Enter MySQL root password: " MYSQL_ROOT_PASS
+            echo
+            MYSQL_COMMAND="mysql -u $MYSQL_ROOT_USER -p$MYSQL_ROOT_PASS"
+        fi
+    else
+        # If an argument is passed, use it as the MySQL root password
+        MYSQL_ROOT_PASS="$1"
+        MYSQL_COMMAND="mysql -u $MYSQL_ROOT_USER -p$MYSQL_ROOT_PASS"
+    fi
+fi
+
+
+if [ ! -d "/bkp/new" ]; then
+    mkdir -p /bkp/new
+fi
+
+TIMESTAMP=$(date +%s)
+
+# Zip up the /var/www/html directory and move it to /bkp
+if [ -f "/bkp/new/html.tar.gz" ]; then
+    echo "Backup already exists, creating a new one"
+    tar -czf /bkp/new/html-$TIMESTAMP.tar.gz /var/www/html
+    sendLog "New HTML directory backed up"
+else
+    echo "Zipping up /var/www/html..."
+    tar -czf /bkp/new/html.tar.gz /var/www/html
+    sendLog "HTML directory backed up"
+fi
+
+# zip up the apache config directory and move it to /bkp
+if [ -d "/etc/httpd" ]; then
+    if [ -f "/bkp/new/httpd.tar.gz" ]; then
+        echo "Backup already exists, creating a new one."
+        tar -czf /bkp/new/httpd-$TIMESTAMP.tar.gz /etc/httpd
+        sendLog "New Apache config backed up"
+    else
+        echo "Zipping up /etc/httpd..."
+        tar -czf /bkp/new/httpd.tar.gz /etc/httpd
+        sendLog "Apache config backed up"
+    fi
+elif [ -d "/etc/apache2" ]; then
+    if [ -f "/bkp/new/apache2.tar.gz" ]; then
+        echo "Backup already exists, creating a new one"
+        tar -czf /bkp/new/apache2-$TIMESTAMP.tar.gz /etc/apache2
+        sendLog "New Apache config backed up"
+    else
+        echo "Zipping up /etc/apache2..."
+        tar -czf /bkp/new/apache2.tar.gz /etc/apache2
+        sendLog "Apache config backed up"
+    fi
+fi
+
+if [ "$MYSQL" == "true" ]; then
+    # backup the mysql database
+    if [ -f "/bkp/new/ecomm.sql" ]; then
+        echo "Backup already exists, creating a new one"
+        if [ -z "$MYSQL_ROOT_PASS" ]; then
+            mysqldump -u root --all-databases > /bkp/new/ecomm-$TIMESTAMP.sql
+        else
+            mysqldump -u root -p$MYSQL_ROOT_PASS --all-databases > /bkp/new/ecomm-$TIMESTAMP.sql
+        fi
+        sendLog "New MySQL database backed up"
+    else
+        if [ -z "$MYSQL_ROOT_PASS" ]; then
+            mysqldump -u root --all-databases > /bkp/new/ecomm.sql
+        else
+            mysqldump -u root -p$MYSQL_ROOT_PASS --all-databases > /bkp/new/ecomm.sql
+        fi
+        sendLog "MySQL database backed up"
+    fi
 fi
 EOF
-    chmod +x $SCRIPT_DIR/linux/mysql_backup.sh
 
-    # Add a script to restore the database
-    cat <<'EOF' > $SCRIPT_DIR/linux/mysql_restore.sh
+    # Make the backup script executable
+    chmod +x $SCRIPT_DIR/linux/backup.sh
+
+
+    # Add a script to restore the backups
+    cat <<'EOF' > $SCRIPT_DIR/linux/restore.sh
 #!/bin/bash
-if [[ $EUID -ne 0 ]]
-then
-  printf 'Must be run as root, exiting!\n'
-  exit 1
+
+# Variables
+MYSQL_ROOT_USER="root"         # MySQL root username
+LOGFILE="/ccdc/logs/monolith_log.txt"
+
+# Check if mysql is installed on the system
+if [ $(which mysql) ]; then
+    MYSQL="true"
+else
+    MYSQL="false"
 fi
 
-# Check if the system is running prestashop and get the MySQL root password
-if [ ! -d /var/www/html/prestashop ]; then
-    echo "Prestashop is not installed on this system"
-    exit 1
-fi
-CORRECT_PASS="random_text"
-while ([ ! -z "$CORRECT_PASS" ]) && [ $ATTEMPTS -le 2 ]; do
-    # Get the MySQL root password
-    read -p "Enter the MySQL root password: " -s MYSQL_ROOT_PASSWORD
+if [ "$MYSQL" == "true" ]; then
+    # Check if MYSQL_ROOT_PASS is passed as an argument or if we need to ask for it
+    if [ -z "$1" ]; then
+        # If no password argument is provided, try to use passwordless login
+        MYSQL_COMMAND="mysql -u $MYSQL_ROOT_USER"
 
-    # Check if the password is correct, it also may be blank
-    if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
-        CORRECT_PASS=$(mysql -u root -e "exit" 2>/dev/stdout)
+        # Test if passwordless login is available by running a simple query
+        if ! $MYSQL_COMMAND -e "exit" > /dev/null 2>&1; then
+            # If passwordless login fails, prompt for MySQL root password
+            read -sp "Enter MySQL root password: " MYSQL_ROOT_PASS
+            echo
+            MYSQL_COMMAND="mysql -u $MYSQL_ROOT_USER -p$MYSQL_ROOT_PASS"
+        fi
     else
-        CORRECT_PASS=$(mysql -u root -p$MYSQL_ROOT_PASSWORD -e "exit" 2>/dev/stdout)
+        # If an argument is passed, use it as the MySQL root password
+        MYSQL_ROOT_PASS="$1"
+        MYSQL_COMMAND="mysql -u $MYSQL_ROOT_USER -p$MYSQL_ROOT_PASS"
     fi
-    ATTEMPTS=$((ATTEMPTS+1))
+fi
+
+# Get a list of backups in the /bkp/new directory
+BACKUPS=$(ls /bkp/new | grep -E 'html|httpd|apache2|ecomm')
+
+# Extract unique timestamps from the backup filenames
+TIMESTAMPS=$(echo "$BACKUPS" | grep -oP '\d{10}' | sort -u)
+
+# Ask the user which timestamp they want to restore from
+echo "Available backup timestamps:"
+select TIMESTAMP in $TIMESTAMPS; do
+    if [ -n "$TIMESTAMP" ]; then
+        echo "Restoring from timestamp: $TIMESTAMP"
+        break
+    else
+        echo "Invalid selection. Please try again."
+    fi
 done
 
-if [ ! -z "$CORRECT_PASS" ]; then
-    echo "Could not connect to MySQL please run the scripts for mysql manually"
-    exit 1
+# Restore the /var/www/html directory
+if [ -f "/bkp/new/html-$TIMESTAMP.tar.gz" ]; then
+    echo "Restoring /var/www/html..."
+    tar -xzf /bkp/new/html-$TIMESTAMP.tar.gz -C /
+    sendLog "HTML directory restored from $TIMESTAMP"
+else
+    echo "No backup found for /var/www/html with timestamp $TIMESTAMP"
 fi
 
-# restore the mysql database
-if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
-    mysql -u root < /bkp/original/ecomm.sql
+# Restore the apache config directory
+if [ -f "/bkp/new/httpd-$TIMESTAMP.tar.gz" ]; then
+    if [ -d "/etc/httpd" ]; then
+        echo "Restoring /etc/httpd..."
+        tar -xzf /bkp/new/httpd-$TIMESTAMP.tar.gz -C /
+        sendLog "Apache config restored from $TIMESTAMP"
+    elif [ -d "/etc/apache2" ]; then
+        echo "Restoring /etc/apache2..."
+        tar -xzf /bkp/new/httpd-$TIMESTAMP.tar.gz -C /
+        sendLog "Apache config restored from $TIMESTAMP"
+    fi
 else
-    mysql -u root -p$MYSQL_ROOT_PASSWORD < /bkp/original/ecomm.sql
+    echo "No backup found for apache config with timestamp $TIMESTAMP"
+fi
+
+if [ "$MYSQL" == "true" ]; then
+    # Restore the mysql database
+    if [ -f "/bkp/new/ecomm-$TIMESTAMP.sql" ]; then
+        echo "Restoring MySQL database..."
+        if [ -z "$MYSQL_ROOT_PASS" ]; then
+            mysql -u root < /bkp/new/ecomm-$TIMESTAMP.sql
+            sendLog "MySQL database restored from $TIMESTAMP"
+        else
+            mysql -u root -p$MYSQL_ROOT_PASS < /bkp/new/ecomm-$TIMESTAMP.sql
+            sendLog "MySQL database restored from $TIMESTAMP"
+        fi
+    else
+        echo "No backup found for MySQL database with timestamp $TIMESTAMP"
+    fi
 fi
 EOF
-    chmod +x $SCRIPT_DIR/linux/mysql_restore.sh
+
+    # Make the restore script executable
+    chmod +x $SCRIPT_DIR/linux/restore.sh
 
 
     if [ $PRESTASHOP == "true" ]; then
@@ -891,7 +1005,6 @@ EOF
     if [ $MYSQL == "true" ]; then
         # Create a new database user for prestashop
         bash $SCRIPT_DIR/linux/change_db_user.sh $MYSQL_ROOT_PASSWORD
-        sendLog "Prestashop database user created, and configuration updated"
 
         # Read the current PrestaShop database name from the configuration file, there are two possible locations, and they have different formats
         # The database name can be found in the configuration file located in /var/www/html/prestashop/config/settings.inc.php, or in /var/www/html/prestashop/app/config/parameters.php
@@ -961,16 +1074,17 @@ EOF
     systemctl restart httpd
     sendLog "Apache restarted"
 
-    #TODO: Ensure that the backup does not already exist
     # Create backups of the new changes
     if [ ! -d "/bkp/new" ]; then
         mkdir -p /bkp/new
     fi
 
+    TIMESTAMP=$(date +%s)
+
     # Zip up the /var/www/html directory and move it to /bkp
     if [ -f "/bkp/new/html.tar.gz" ]; then
         echo "Backup already exists, creating a new one"
-        tar -czf /bkp/new/html-$(date +%s).tar.gz /var/www/html
+        tar -czf /bkp/new/html-$TIMESTAMP.tar.gz /var/www/html
         sendLog "New HTML directory backed up"
     else
         echo "Zipping up /var/www/html..."
@@ -982,7 +1096,7 @@ EOF
     if [ -d "/etc/httpd" ]; then
         if [ -f "/bkp/new/httpd.tar.gz" ]; then
             echo "Backup already exists, creating a new one."
-            tar -czf /bkp/new/httpd-$(date +%s).tar.gz /etc/httpd
+            tar -czf /bkp/new/httpd-$TIMESTAMP.tar.gz /etc/httpd
             sendLog "New Apache config backed up"
         else
             echo "Zipping up /etc/httpd..."
@@ -992,7 +1106,7 @@ EOF
     elif [ -d "/etc/apache2" ]; then
         if [ -f "/bkp/new/apache2.tar.gz" ]; then
             echo "Backup already exists, creating a new one"
-            tar -czf /bkp/new/apache2-$(date +%s).tar.gz /etc/apache2
+            tar -czf /bkp/new/apache2-$TIMESTAMP.tar.gz /etc/apache2
             sendLog "New Apache config backed up"
         else
             echo "Zipping up /etc/apache2..."
@@ -1006,9 +1120,9 @@ EOF
         if [ -f "/bkp/new/ecomm.sql" ]; then
             echo "Backup already exists, creating a new one"
             if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
-                mysqldump -u root --all-databases > /bkp/new/ecomm-$(date +%s).sql
+                mysqldump -u root --all-databases > /bkp/new/ecomm-$TIMESTAMP.sql
             else
-                mysqldump -u root -p$MYSQL_ROOT_PASSWORD --all-databases > /bkp/new/ecomm-$(date +%s).sql
+                mysqldump -u root -p$MYSQL_ROOT_PASSWORD --all-databases > /bkp/new/ecomm-$TIMESTAMP.sql
             fi
             sendLog "New MySQL database backed up"
         else
