@@ -1883,7 +1883,7 @@ check_for_malicious_bash() {
 
                 # remove the trap or PROMPT_COMMAND
                 sed -i '/^[^#]*trap/d' "$FILE"
-                sed -i '/^[^#]*PROMPT_COMMAND/d' "$FILE"
+                # sed -i '/^[^#]*PROMPT_COMMAND/d' "$FILE" #This sometimes breaks the shell, need to further investigate
                 sed -i '/^[^#]*watch/d' "$FILE"
 
                 # print the contents of the trap or PROMPT_COMMAND to a file
