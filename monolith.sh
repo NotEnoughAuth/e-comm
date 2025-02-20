@@ -1006,6 +1006,8 @@ EOF
         # Create a new database user for prestashop
         bash $SCRIPT_DIR/linux/change_db_user.sh $MYSQL_ROOT_PASSWORD
 
+        PRESTASHOP_DIR="/var/www/html/prestashop"
+
         # Read the current PrestaShop database name from the configuration file, there are two possible locations, and they have different formats
         # The database name can be found in the configuration file located in /var/www/html/prestashop/config/settings.inc.php, or in /var/www/html/prestashop/app/config/parameters.php
         # The database name will look like this define('_DB_NAME_', 'prestashop'); or 'database_name' => 'prestashop',
