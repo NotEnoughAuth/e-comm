@@ -1034,7 +1034,7 @@ EOF
         DB_PREFIX=${DB_PREFIX:-ps_}
 
         # check if the db prefix is set
-        if [ -z "$DB_PREFIX" ] && [ -z "$CURRENT_DB_NAME" ]; then
+        if [ -z "$DB_PREFIX" ] || [ -z "$CURRENT_DB_NAME" ]; then
             echo "Could not find the database prefix in the configuration file, or the database name"
             sendLog "Could not find the database prefix in the configuration file, or the database name, Smarty cache not disabled"
         else
