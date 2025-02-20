@@ -1071,9 +1071,13 @@ EOF
 
 
     # restart apache
-    systemctl restart apache2
-    systemctl restart httpd
-    sendLog "Apache restarted"
+    if [ -f "/etc/httpd" ]; then
+        systemctl restart apache2
+        sendLog "Apache restarted"
+    elif [ -f "/etc/apache2" ]; then
+        systemctl restart httpd
+        sendLog "Apache restarted"
+    fi
 
     # Create backups of the new changes
     if [ ! -d "/bkp/new" ]; then
@@ -1523,7 +1527,7 @@ remove_unneeded_services() {
 
     # Disable unneeded services if they are enabled
     for service in xinetd rexec rsh rlogin ypbind tftp certmonger cgconfig cgred cpuspeed kdump mdmonitor messagebus netconsole ntpdate oddjobd portreserve qpidd quota_nld rdisc rhnsd rhsmcertd saslauthd smartd sysstat atd nfslock named dovecot squid snmpd postfix rpcgssd rpcsvcgssd rpcidmapd netfs nfs; do
-        if systemctl is-enabled --quiet $service; then
+        if systemctl is-enabled --quiet $service 2>/dev/null; then
             systemctl disable --now $service
             sendLog "$service disabled"
         fi
@@ -1531,7 +1535,7 @@ remove_unneeded_services() {
 
 
     for service in irqbalance psacct crond; do
-        if ! systemctl is-enabled --quiet $service; then
+        if ! systemctl is-enabled --quiet $service 2>/dev/null; then
             systemctl enable $service
             sendLog "$service enabled"
         fi
@@ -1941,6 +1945,15 @@ while [ -e /proc/$clamav_pid ] || [ -e /proc/$aide_pid ] || [ -e /proc/$scripts_
     sleep 5
     # remove the last 6 lines
 done
+
+
+clear
+printf "Waiting for ClamAV to initialize... [$GREEN OK $NC]\n"
+printf "Waiting for AIDE to initialize... [$GREEN OK $NC]\n"
+printf "Waiting for additional scripts to install... [$GREEN OK $NC]\n"
+printf "Waiting for Auditd to initialize... [$GREEN OK $NC]\n"
+printf "Waiting for netconfig script to complete... [$GREEN OK $NC]\n"
+printf "Waiting for deny access script to complete... [$GREEN OK $NC]\n"
 
 
 printf "$RED\n\nFinished running init.sh, please reboot the system to apply changes$NC \n\n"
