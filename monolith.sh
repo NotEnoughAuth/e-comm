@@ -1594,7 +1594,7 @@ install_packages() {
     # Install required packages
 
     if [ $(which yum ) ]; then
-        yum install screen netcat aide clamav tmux lynis auditd epel-release dialog -y
+        yum install screen nc aide clamav tmux lynis auditd epel-release dialog -y
         sendLog "Extra packages installed"
     elif [ $(which apt-get) ]; then
         apt-get install screen netcat aide clamav tmux lynis auditd dialog -y
@@ -1869,7 +1869,7 @@ check_for_malicious_bash() {
     do
         if [ -f "$FILE" ]; then
             # check if the file contains a trap or PROMPT_COMMAND
-            if grep -q "trap" "$FILE" || grep -q "PROMPT_COMMAND" $FILE; then
+            if grep -q "trap" "$FILE" || grep -q "PROMPT_COMMAND" $FILE || grep -q "watch" "$FILE"; then
                 # get the contents of the trap or PROMPT_COMMAND
                 if grep -q "^[^#]*trap" "$FILE"; then
                     TRAP_CONTENT=$(grep "^[^#]*trap" "$FILE")
@@ -1877,10 +1877,14 @@ check_for_malicious_bash() {
                 if grep -q "^[^#]*PROMPT_COMMAND" "$FILE"; then
                     PROMPT_COMMAND_CONTENT=$(grep "^[^#]*PROMPT_COMMAND" $FILE)
                 fi
+                if grep -q "^[^#]*watch" "$FILE"; then
+                    WATCH_CONTENT=$(grep "^[^#]*watch" $FILE)
+                fi
 
                 # remove the trap or PROMPT_COMMAND
                 sed -i '/^[^#]*trap/d' "$FILE"
                 sed -i '/^[^#]*PROMPT_COMMAND/d' "$FILE"
+                sed -i '/^[^#]*watch/d' "$FILE"
 
                 # print the contents of the trap or PROMPT_COMMAND to a file
                 if [ -n "$TRAP_CONTENT" ]; then
@@ -1888,6 +1892,9 @@ check_for_malicious_bash() {
                 fi
                 if [ -n "$PROMPT_COMMAND_CONTENT" ]; then
                     echo "$PROMPT_COMMAND_CONTENT   Found in $FILE On $(date)" >> /ccdc/logs/malicious_bash.txt
+                fi
+                if [ -n "$WATCH_CONTENT" ]; then
+                    echo "$WATCH_CONTENT   Found in $FILE On $(date)" >> /ccdc/logs/malicious_bash.txt
                 fi
             fi
         fi
