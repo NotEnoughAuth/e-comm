@@ -1018,7 +1018,6 @@ EOF
             CURRENT_DB_NAME=$(grep -oP "'database_name' => '\K[^']+" "$PHP_FILE")
         else
             echo "PrestaShop configuration file not found."
-            exit 1
         fi
 
         # disable smarty cache in the prestashop configuration table
