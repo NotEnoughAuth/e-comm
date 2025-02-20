@@ -874,6 +874,21 @@ EOF
         bash $SCRIPT_DIR/linux/change_db_user.sh $MYSQL_ROOT_PASSWORD
         sendLog "Prestashop database user created, and configuration updated"
 
+        # Read the current PrestaShop database name from the configuration file, there are two possible locations, and they have different formats
+        # The database name can be found in the configuration file located in /var/www/html/prestashop/config/settings.inc.php, or in /var/www/html/prestashop/app/config/parameters.php
+        # The database name will look like this define('_DB_NAME_', 'prestashop'); or 'database_name' => 'prestashop',
+        # Extract the database name from the define statement
+        if [ -f "$PRESTASHOP_DIR/config/settings.inc.php" ]; then
+            PHP_FILE="$PRESTASHOP_DIR/config/settings.inc.php"
+            CURRENT_DB_NAME=$(grep -oP "define\('_DB_NAME_', '\K[^']+" "$PHP_FILE")
+        elif [ -f "$PRESTASHOP_DIR/app/config/parameters.php" ]; then
+            PHP_FILE="$PRESTASHOP_DIR/app/config/parameters.php"
+            CURRENT_DB_NAME=$(grep -oP "'database_name' => '\K[^']+" "$PHP_FILE")
+        else
+            echo "PrestaShop configuration file not found."
+            exit 1
+        fi
+
         # disable smarty cache in the prestashop configuration table
         # first get the db prefix from the two possible locations
         if [ -f "/var/www/html/prestashop/config/settings.inc.php" ]; then
@@ -886,17 +901,29 @@ EOF
         DB_PREFIX=${DB_PREFIX:-ps_}
 
         # check if the db prefix is set
-        if [ -z "$DB_PREFIX" ]; then
-            echo "Could not find the database prefix in the configuration file"
+        if [ -z "$DB_PREFIX" ] && [ -z "$CURRENT_DB_NAME" ]; then
+            echo "Could not find the database prefix in the configuration file, or the database name"
+            sendLog "Could not find the database prefix in the configuration file, or the database name, Smarty cache not disabled"
         else
-            # update the smarty cache in the database
+            # check if the smarty cache is already disabled
             if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
-                mysql -u root -e "UPDATE ${DB_PREFIX}configuration SET value='0' WHERE name='PS_SMARTY_CACHE';"
+                SMARTY_CACHE_STATUS=$(mysql -u root -sse "SELECT value FROM ${CURRENT_DB_NAME}.${DB_PREFIX}configuration WHERE name='PS_SMARTY_CACHE';")
             else
-                mysql -u root -p$MYSQL_ROOT_PASSWORD -e "UPDATE ${DB_PREFIX}configuration SET value='0' WHERE name='PS_SMARTY_CACHE';"
+                SMARTY_CACHE_STATUS=$(mysql -u root -p$MYSQL_ROOT_PASSWORD -sse "SELECT value FROM ${CURRENT_DB_NAME}.${DB_PREFIX}configuration WHERE name='PS_SMARTY_CACHE';")
             fi
-            echo "Smarty cache disabled in the database"
-            sendLog "Smarty cache disabled in the database"
+
+            if [ "$SMARTY_CACHE_STATUS" == "0" ]; then
+                echo "Smarty cache is already disabled"
+            else
+                # update the smarty cache in the database
+                if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
+                    mysql -u root -e "UPDATE ${CURRENT_DB_NAME}.${DB_PREFIX}configuration SET value='0' WHERE name='PS_SMARTY_CACHE';"
+                else
+                    mysql -u root -p$MYSQL_ROOT_PASSWORD -e "UPDATE ${CURRENT_DB_NAME}.${DB_PREFIX}configuration SET value='0' WHERE name='PS_SMARTY_CACHE';"
+                fi
+                echo "Smarty cache disabled in the database"
+                sendLog "Smarty cache disabled in the database"
+            fi
         fi
     fi
 
