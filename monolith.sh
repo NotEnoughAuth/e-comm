@@ -1,4 +1,7 @@
 #!/bin/bash
+
+# https://raw.githubusercontent.com/NotEnoughAuth/e-comm/master/monolith.sh
+
 # Check if the script is being run as root
 if [[ $EUID -ne 0 ]]
 then
@@ -919,29 +922,57 @@ EOF
     fi
 
     # Zip up the /var/www/html directory and move it to /bkp
-    echo "Zipping up /var/www/html..."
-    tar -czf /bkp/new/html.tar.gz /var/www/html
-    sendLog "Prestashop directory backed up"
+    if [ -f "/bkp/new/html.tar.gz" ]; then
+        echo "Backup already exists, creating a new one"
+        tar -czf /bkp/new/html-$(date +%s).tar.gz /var/www/html
+        sendLog "New HTML directory backed up"
+    else
+        echo "Zipping up /var/www/html..."
+        tar -czf /bkp/new/html.tar.gz /var/www/html
+        sendLog "HTML directory backed up"
+    fi
 
     # zip up the apache config directory and move it to /bkp
     if [ -d "/etc/httpd" ]; then
-        echo "Zipping up /etc/httpd..."
-        tar -czf /bkp/new/httpd.tar.gz /etc/httpd
-        sendLog "Apache config backed up"
+        if [ -f "/bkp/new/httpd.tar.gz" ]; then
+            echo "Backup already exists, creating a new one."
+            tar -czf /bkp/new/httpd-$(date +%s).tar.gz /etc/httpd
+            sendLog "New Apache config backed up"
+        else
+            echo "Zipping up /etc/httpd..."
+            tar -czf /bkp/new/httpd.tar.gz /etc/httpd
+            sendLog "Apache config backed up"
+        fi
     elif [ -d "/etc/apache2" ]; then
-        echo "Zipping up /etc/apache2..."
-        tar -czf /bkp/new/apache2.tar.gz /etc/apache2
-        sendLog "Apache config backed up"
+        if [ -f "/bkp/new/apache2.tar.gz" ]; then
+            echo "Backup already exists, creating a new one"
+            tar -czf /bkp/new/apache2-$(date +%s).tar.gz /etc/apache2
+            sendLog "New Apache config backed up"
+        else
+            echo "Zipping up /etc/apache2..."
+            tar -czf /bkp/new/apache2.tar.gz /etc/apache2
+            sendLog "Apache config backed up"
+        fi
     fi
 
     if [ "$MYSQL" == "true" ]; then
         # backup the mysql database
-        if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
-            mysqldump -u root --all-databases > /bkp/new/ecomm.sql
+        if [ -f "/bkp/new/ecomm.sql" ]; then
+            echo "Backup already exists, creating a new one"
+            if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
+                mysqldump -u root --all-databases > /bkp/new/ecomm-$(date +%s).sql
+            else
+                mysqldump -u root -p$MYSQL_ROOT_PASSWORD --all-databases > /bkp/new/ecomm-$(date +%s).sql
+            fi
+            sendLog "New MySQL database backed up"
         else
-            mysqldump -u root -p$MYSQL_ROOT_PASSWORD --all-databases > /bkp/new/ecomm.sql
+            if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
+                mysqldump -u root --all-databases > /bkp/new/ecomm.sql
+            else
+                mysqldump -u root -p$MYSQL_ROOT_PASSWORD --all-databases > /bkp/new/ecomm.sql
+            fi
+            sendLog "MySQL database backed up"
         fi
-        sendLog "MySQL database backed up"
     fi
 
     # copy the backup folder to random location
@@ -1310,61 +1341,41 @@ remove_unneeded_services() {
     if [ "$OS_ID" == "centos" ]; then
         yum remove xinetd telnet-server rsh-server telnet rsh ypbind ypserv tftp-server cronie-anacron bind vsftpd dovecot squid net-snmpd postfix vim -y
         if [ "$APACHE" == "true" ]; then
-            yum remove httpd-manual phpmyadmin -y
-            sendLog "Apache docs and phpmyadmin removed"
+            for package in httpd-manual phpmyadmin; do
+                if yum list installed | grep -q $package; then
+                    yum remove $package -y
+                    sendLog "$package removed"
+                fi
+            done
         fi
     elif [ "$OS_ID" == "ubuntu" ]; then
         apt-get remove xinetd telnetd rsh-server telnet rsh ypbind ypserv tftpd-hpa cronie-anacron bind9 vsftpd dovecot-core squid net-snmpd postfix vim -y
         if [ "$APACHE" == "true" ]; then
-            apt-get remove apache2-doc phpmyadmin -y
-            sendLog "Apache docs and phpmyadmin removed"
+            for package in apache2-doc phpmyadmin; do
+                if dpkg -l | grep -q $package; then
+                    apt-get remove $package -y
+                    sendLog "$package removed"
+                fi
+            done
         fi
     fi
 
-    # Disable unneeded services and enable needed services
-    systemctl disable --now xinetd
-    systemctl disable --now rexec
-    systemctl disable --now rsh
-    systemctl disable --now rlogin
-    systemctl disable --now ypbind
-    systemctl disable --now tftp
-    systemctl disable --now certmonger
-    systemctl disable --now cgconfig
-    systemctl disable --now cgred
-    systemctl disable --now cpuspeed
-    systemctl disable --now kdump
-    systemctl disable --now mdmonitor
-    systemctl disable --now messagebus
-    systemctl disable --now netconsole
-    systemctl disable --now ntpdate
-    systemctl disable --now oddjobd
-    systemctl disable --now portreserve
-    systemctl disable --now qpidd
-    systemctl disable --now quota_nld
-    systemctl disable --now rdisc
-    systemctl disable --now rhnsd
-    systemctl disable --now rhsmcertd
-    systemctl disable --now saslauthd
-    systemctl disable --now smartd
-    systemctl disable --now sysstat
-    systemctl disable --now atd
-    systemctl disable --now nfslock
-    systemctl disable --now named
-    systemctl disable --now dovecot
-    systemctl disable --now squid
-    systemctl disable --now snmpd
-    systemctl disable --now postfix
-    systemctl disable --now rpcgssd
-    systemctl disable --now rpcsvcgssd
-    systemctl disable --now rpcidmapd
-    systemctl disable --now netfs
-    systemctl disable --now nfs
+    # Disable unneeded services if they are enabled
+    for service in xinetd rexec rsh rlogin ypbind tftp certmonger cgconfig cgred cpuspeed kdump mdmonitor messagebus netconsole ntpdate oddjobd portreserve qpidd quota_nld rdisc rhnsd rhsmcertd saslauthd smartd sysstat atd nfslock named dovecot squid snmpd postfix rpcgssd rpcsvcgssd rpcidmapd netfs nfs; do
+        if systemctl is-enabled --quiet $service; then
+            systemctl disable --now $service
+            sendLog "$service disabled"
+        fi
+    done
 
 
-    # Ensure some services are enabled
-    systemctl enable irqbalance
-    systemctl enable psacct
-    systemctl enable crond
+    for service in irqbalance psacct crond; do
+        if ! systemctl is-enabled --quiet $service; then
+            systemctl enable $service
+            sendLog "$service enabled"
+        fi
+    done
+
 }
 
 update_packages() {
@@ -1481,13 +1492,17 @@ initialize_auditd(){
 }
 
 install_additional_scripts() {
-    # Install monitor script
-    wget $BASEURL/linux/E-Comm/monitor.sh -O /ccdc/scripts/monitor.sh
-    chmod +x /ccdc/scripts/linux/monitor.sh
+    if [ ! -f /ccdc/scripts/monitor.sh ]; then
+        # Install monitor script
+        wget $BASEURL/linux/E-Comm/monitor.sh -O /ccdc/scripts/monitor.sh
+        chmod +x /ccdc/scripts/linux/monitor.sh
+    fi
 
-    # Install apache_update script
-    wget $BASEURL/linux/E-Comm/update_apache.sh -O /ccdc/scripts/update_apache.sh
-    chmod +x /ccdc/scripts/linux/update_apache.sh
+    if [ ! -f /ccdc/scripts/update_apache.sh ]; then
+        # Install apache_update script
+        wget $BASEURL/linux/E-Comm/update_apache.sh -O /ccdc/scripts/update_apache.sh
+        chmod +x /ccdc/scripts/linux/update_apache.sh
+    fi
 }
 
 netconfig_script() {
@@ -1497,7 +1512,11 @@ netconfig_script() {
     INTERFACE=$(ip route | grep default | awk '{print $5}')
 
     # ensure iproute is installed
-    yum install -y iproute
+    if [ $(which apt) ]; then
+        apt install -y iproute2
+    elif [ $(which yum) ]; then
+        yum install -y iproute
+    fi
 
     cat <<EOF > /ccdc/scripts/linux/netconfig.sh
 #!/bin/bash
