@@ -1964,6 +1964,5 @@ printf "Waiting for deny access script to complete... [$GREEN OK $NC]\n"
 
 
 printf "$RED\n\nFinished running init.sh, please reboot the system to apply changes$NC \n\n"
-echo -e "Run \'less /ccdc/logs/malicious_bash.txt\' to see if any malicious bash commands were found"
-echo -e "Run \'less /ccdc/logs/monolith-log.txt\' to see the log of the script"
-echo
+printf "Run \'less /ccdc/logs/malicious_bash.txt\' to see if any malicious bash commands were found\n"
+printf "Run \'less /ccdc/logs/monolith-log.txt\' to see the log of the script\n\n"
