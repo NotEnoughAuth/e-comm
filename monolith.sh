@@ -792,6 +792,7 @@ EOF
 # Variables
 MYSQL_ROOT_USER="root"         # MySQL root username
 PRESTASHOP_DIR="/var/www/html/prestashop"  # Path to your PrestaShop installation
+$LOGFILE="/ccdc/logs/monolith_log.txt"
 
 # Check if MYSQL_ROOT_PASS is passed as an argument or if we need to ask for it
 if [ -z "$1" ]; then
@@ -818,9 +819,11 @@ fi
 if [ -f "$PRESTASHOP_DIR/config/settings.inc.php" ]; then
     PHP_FILE="$PRESTASHOP_DIR/config/settings.inc.php"
     CURRENT_DB_NAME=$(grep -oP "define\('_DB_NAME_', '\K[^']+" "$PHP_FILE")
+    CURRENT_DB_USER=$(grep -oP "define\('_DB_USER_', '\K[^']+" "$PHP_FILE")
 elif [ -f "$PRESTASHOP_DIR/app/config/parameters.php" ]; then
     PHP_FILE="$PRESTASHOP_DIR/app/config/parameters.php"
     CURRENT_DB_NAME=$(grep -oP "'database_name' => '\K[^']+" "$PHP_FILE")
+    CURRENT_DB_USER=$(grep -oP "'database_user' => '\K[^']+" "$PHP_FILE")
 else
     echo "PrestaShop configuration file not found."
     exit 1
@@ -836,20 +839,34 @@ fi
 NEW_USER="ps_user_$(openssl rand -hex 4)"
 NEW_PASS=$(openssl rand -base64 64)
 
-# Fileter out special characters from the password
+# Filter out special characters from the password
 NEW_PASS=$(echo "$NEW_PASS" | tr -cd '[:alnum:]')
 
-# Create new MySQL user with random password and grant necessary permissions
-echo "Creating MySQL user and granting permissions..."
-$MYSQL_COMMAND -e "
-CREATE USER '$NEW_USER'@'localhost' IDENTIFIED BY '$NEW_PASS';
-GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER ON $CURRENT_DB_NAME.* TO '$NEW_USER'@'localhost';
-FLUSH PRIVILEGES;
-"
+# Check if the current DB user is not root or if -f flag is provided
+if [ "$CURRENT_DB_USER" != "root" ] || [ "$1" == "-f" ]; then
+    if [ "$1" == "-f" ]; then
+        echo "Forcing password change for user $CURRENT_DB_USER."
+        $MYSQL_COMMAND -e "ALTER USER '$CURRENT_DB_USER'@'localhost' IDENTIFIED BY '$NEW_PASS';"
+        # Append the a new log entry to the /ccdc/logs/monolith_log.txt
+        echo "$(date +"%x %X") - Database user $CURRENT_DB_USER password changed." >> $LOGFILE
+    else
+        echo "Database user is already set to $CURRENT_DB_USER. No changes needed."
+        exit 0
+    fi
+else
+    # Create new MySQL user with random password and grant necessary permissions
+    echo "Creating MySQL user and granting permissions..."
+    $MYSQL_COMMAND -e "
+    CREATE USER '$NEW_USER'@'localhost' IDENTIFIED BY '$NEW_PASS';
+    GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER ON $CURRENT_DB_NAME.* TO '$NEW_USER'@'localhost';
+    FLUSH PRIVILEGES;
+    "
+    CURRENT_DB_USER=$NEW_USER
+fi
 
 # Test the new user
 echo "Testing new MySQL user..."
-$MYSQL_COMMAND -e "exit" -u $NEW_USER -p$NEW_PASS
+$MYSQL_COMMAND -e "exit" -u $CURRENT_DB_USER -p$NEW_PASS
 if [ $? -ne 0 ]; then
     echo "Failed to create or test new MySQL user."
     exit 1
@@ -858,14 +875,16 @@ fi
 # Update the PrestaShop configuration file with the new database user and password
 echo "Updating PrestaShop configuration file with the new database user and password..."
 if [ -f "$PRESTASHOP_DIR/config/settings.inc.php" ]; then
-    sed -i "s/define('_DB_USER_', '.*');/define('_DB_USER_', '$NEW_USER');/" "$PHP_FILE"
+    sed -i "s/define('_DB_USER_', '.*');/define('_DB_USER_', '$CURRENT_DB_USER');/" "$PHP_FILE"
     sed -i "s/define('_DB_PASSWD_', '.*');/define('_DB_PASSWD_', '$NEW_PASS');/" "$PHP_FILE"
 elif [ -f "$PRESTASHOP_DIR/app/config/parameters.php" ]; then
-    sed -i "s/'database_user' => '.*',/'database_user' => '$NEW_USER',/" "$PHP_FILE"
+    sed -i "s/'database_user' => '.*',/'database_user' => '$CURRENT_DB_USER',/" "$PHP_FILE"
     sed -i "s/'database_password' => '.*',/'database_password' => '$NEW_PASS',/" "$PHP_FILE"
 fi
 
 echo "PrestaShop database user updated successfully."
+echo "$(date +"%x %X") - Created a new user for Prestashop: $CURRENT_DB_USER" >> $LOGFILE
+exit 0
 EOF
         chmod +x $SCRIPT_DIR/linux/change_db_user.sh
 
