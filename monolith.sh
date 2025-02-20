@@ -964,7 +964,7 @@ if [ "$CURRENT_DB_USER" != "root" ] || [ "$1" == "-f" ]; then
         # Append the a new log entry to the /ccdc/logs/monolith_log.txt
         echo "$(date +"%x %X") - Database user $CURRENT_DB_USER password changed." >> $LOGFILE
     else
-        echo "Database user is already set to $CURRENT_DB_USER. No changes needed."
+        echo "Database user is already set to $CURRENT_DB_USER. No changes needed. Use -f flag to force password change."
         exit 0
     fi
 else
