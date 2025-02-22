@@ -1123,6 +1123,10 @@ EOF
 
     # fix permissions on the /var/www/html/prestashop directory
     TARGET_DIR="/var/www/html/prestashop"
+    # Check if Target directory has immutable flag set
+    if [ "$(lsattr -d $TARGET_DIR | grep -o 'i')" ]; then
+        chattr -R -i $TARGET_DIR
+    fi
     # Set directories to 755
     find "$TARGET_DIR" -type d -exec chmod 755 {} \;
     # Set files to 644
