@@ -714,7 +714,7 @@ EOF
 
     # check if the /var/www/html/prestashop/config directory exists, if it does then add a section to disable it if it does not already exist in the apache config
     if [ -d "/var/www/html/prestashop/config" ]; then
-        if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/config' $APACHE_CONFIG)" ]; then
+        if [ ! "$(grep -iq 'RedirectMatch 404 ^/prestashop/config' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable access to the config directory..."
             echo "RedirectMatch 404 ^/prestashop/config" >> $APACHE_CONFIG
             sendLog "Prestashop config directory disabled"
@@ -723,7 +723,7 @@ EOF
 
     # check if the /var/www/html/prestashop/app directory exists, if it does then add a section to disable it if it does not already exist in the apache config
     if [ -d "/var/www/html/prestashop/app" ]; then
-        if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/app' $APACHE_CONFIG)" ]; then
+        if [ ! "$(grep -iq 'RedirectMatch 404 ^/prestashop/app' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable access to the app directory..."
             echo "RedirectMatch 404 ^/prestashop/app" >> $APACHE_CONFIG
             sendLog "Prestashop app directory disabled"
@@ -732,7 +732,7 @@ EOF
 
     # check if the /var/www/html/prestashop/var directory exists, if it does then add a section to disable it if it does not already exist in the apache config
     if [ -d "/var/www/html/prestashop/var" ]; then
-        if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/var' $APACHE_CONFIG)" ]; then
+        if [ ! "$(grep -iq 'RedirectMatch 404 ^/prestashop/var' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable access to the var directory..."
             echo "RedirectMatch 404 ^/prestashop/var" >> $APACHE_CONFIG
             sendLog "Prestashop var directory disabled"
@@ -741,7 +741,7 @@ EOF
 
     # check if the /var/www/html/prestashop/translations directory exists, if it does then add a section to disable it if it does not already exist in the apache config
     if [ -d "/var/www/html/prestashop/translations" ]; then
-        if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/translations' $APACHE_CONFIG)" ]; then
+        if [ ! "$(grep -iq 'RedirectMatch 404 ^/prestashop/translations' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable access to the translations directory..."
             echo "RedirectMatch 404 ^/prestashop/translations" >> $APACHE_CONFIG
             sendLog "Prestashop translations directory disabled"
@@ -750,7 +750,7 @@ EOF
 
     # check if the /var/www/html/prestashop/cache directory exists, if it does then add a section to disable it if it does not already exist in the apache config
     if [ -d "/var/www/html/prestashop/cache" ]; then
-        if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/cache' $APACHE_CONFIG)" ]; then
+        if [ ! "$(grep -iq 'RedirectMatch 404 ^/prestashop/cache' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable access to the cache directory..."
             echo "RedirectMatch 404 ^/prestashop/cache" >> $APACHE_CONFIG
             sendLog "Prestashop cache directory disabled"
@@ -759,7 +759,7 @@ EOF
 
     # check if the /var/www/html/prestashop/src directory exists, if it does then add a section to disable it if it does not already exist in the apache config
     if [ -d "/var/www/html/prestashop/src" ]; then
-        if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/src' $APACHE_CONFIG)" ]; then
+        if [ ! "$(grep -iq 'RedirectMatch 404 ^/prestashop/src' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable access to the src directory..."
             echo "RedirectMatch 404 ^/prestashop/src" >> $APACHE_CONFIG
             sendLog "Prestashop src directory disabled"
@@ -768,7 +768,7 @@ EOF
 
     # check if the /var/www/html/prestashop/vendor directory exists, if it does then add a section to disable it if it does not already exist in the apache config
     if [ -d "/var/www/html/prestashop/vendor" ]; then
-        if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/vendor' $APACHE_CONFIG)" ]; then
+        if [ ! "$(grep -iq 'RedirectMatch 404 ^/prestashop/vendor' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable access to the vendor directory..."
             echo "RedirectMatch 404 ^/prestashop/vendor" >> $APACHE_CONFIG
             sendLog "Prestashop vendor directory disabled"
@@ -777,7 +777,7 @@ EOF
 
     # check if the /var/www/html/prestashop/install directory exists, if it does then add a section to disable it if it does not already exist in the apache config
     if [ -d "/var/www/html/prestashop/install" ]; then
-        if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/install' $APACHE_CONFIG)" ]; then
+        if [ ! "$(grep -iq 'RedirectMatch 404 ^/prestashop/install' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable access to the install directory..."
             echo "RedirectMatch 404 ^/prestashop/install" >> $APACHE_CONFIG
             sendLog "Prestashop install directory disabled"
@@ -786,7 +786,7 @@ EOF
 
     # check if the /var/www/html/prestashop/mails directory exists, if it does then add a section to disable it if it does not already exist in the apache config
     if [ -d "/var/www/html/prestashop/mails" ]; then
-        if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/mails' $APACHE_CONFIG)" ]; then
+        if [ ! "$(grep -iq 'RedirectMatch 404 ^/prestashop/mails' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable access to the mails directory..."
             echo "RedirectMatch 404 ^/prestashop/mails" >> $APACHE_CONFIG
             sendLog "Prestashop mails directory disabled"
@@ -795,7 +795,7 @@ EOF
 
     # check if the /var/www/html/prestashop/pdf directory exists, if it does then add a section to disable it if it does not already exist in the apache config
     if [ -d "/var/www/html/prestashop/pdf" ]; then
-        if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/pdf' $APACHE_CONFIG)" ]; then
+        if [ ! "$(grep -iq 'RedirectMatch 404 ^/prestashop/pdf' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable access to the pdf directory..."
             echo "RedirectMatch 404 ^/prestashop/pdf" >> $APACHE_CONFIG
             sendLog "Prestashop pdf directory disabled"
@@ -804,7 +804,7 @@ EOF
 
     # check if the /var/www/html/prestashop/log directory exists, if it does then add a section to disable it if it does not already exist in the apache config
     if [ -d "/var/www/html/prestashop/log" ]; then
-        if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/log' $APACHE_CONFIG)" ]; then
+        if [ ! "$(grep -iq 'RedirectMatch 404 ^/prestashop/log' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable access to the log directory..."
             echo "RedirectMatch 404 ^/prestashop/log" >> $APACHE_CONFIG
             sendLog "Prestashop log directory disabled"
@@ -813,7 +813,7 @@ EOF
 
     # check if the /var/www/html/prestashop/controllers directory exists, if it does then add a section to disable it if it does not already exist in the apache config
     if [ -d "/var/www/html/prestashop/controllers" ]; then
-        if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/controllers' $APACHE_CONFIG)" ]; then
+        if [ ! "$(grep -iq 'RedirectMatch 404 ^/prestashop/controllers' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable access to the controllers directory..."
             echo "RedirectMatch 404 ^/prestashop/controllers" >> $APACHE_CONFIG
             sendLog "Prestashop controllers directory disabled"
@@ -822,7 +822,7 @@ EOF
 
     # check if the /var/www/html/prestashop/classes directory exists, if it does then add a section to disable it if it does not already exist in the apache config
     if [ -d "/var/www/html/prestashop/classes" ]; then
-        if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/classes' $APACHE_CONFIG)" ]; then
+        if [ ! "$(grep -iq 'RedirectMatch 404 ^/prestashop/classes' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable access to the classes directory..."
             echo "RedirectMatch 404 ^/prestashop/classes" >> $APACHE_CONFIG
             sendLog "Prestashop classes directory disabled"
@@ -831,7 +831,7 @@ EOF
 
     # check if the /var/www/html/prestashop/override directory exists, if it does then add a section to disable it if it does not already exist in the apache config
     if [ -d "/var/www/html/prestashop/override" ]; then
-        if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/override' $APACHE_CONFIG)" ]; then
+        if [ ! "$(grep -iq 'RedirectMatch 404 ^/prestashop/override' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable access to the override directory..."
             echo "RedirectMatch 404 ^/prestashop/override" >> $APACHE_CONFIG
             sendLog "Prestashop override directory disabled"
@@ -840,7 +840,7 @@ EOF
 
     # check if the /var/www/html/prestashop/img directory exists, if it does then add a section to disable 
     if [ -d "/var/www/html/prestashop/img" ]; then
-        if [ "$(grep -iq '<Directory /var/www/html/prestashop/img>' $APACHE_CONFIG)" ]; then
+        if [ ! "$(grep -iq '<Directory /var/www/html/prestashop/img>' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable access to the img directory..."
             cat <<EOF >> $APACHE_CONFIG
 <Directory /var/www/html/prestashop/img>
@@ -860,7 +860,7 @@ EOF
     fi
 
     # Prevent access to sensitive files
-    if [ "$(grep -iq '<FilesMatch "\.(env|ini|log|bak|swp|sql|git)">' $APACHE_CONFIG)" ]; then
+    if [ ! "$(grep -iq '<FilesMatch "\.(env|ini|log|bak|swp|sql|git)">' $APACHE_CONFIG)" ]; then
         echo "Adding configuration to disable access to sensitive files..."
         cat <<EOF >> $APACHE_CONFIG
 <FilesMatch "\.(env|ini|log|bak|swp|sql|git)">
@@ -882,7 +882,7 @@ EOF
 
     # disable the php engine in the /var/www/html/prestashop/upload directory and download directory
     if [ -d "/var/www/html/prestashop/upload" ]; then
-        if [ "$(grep -iq '<Directory /var/www/html/prestashop/upload>' $APACHE_CONFIG)" ]; then
+        if [ ! "$(grep -iq '<Directory /var/www/html/prestashop/upload>' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable the php engine in the upload directory..."
             cat <<EOF >> $APACHE_CONFIG
 <Directory /var/www/html/prestashop/upload>
@@ -894,7 +894,7 @@ EOF
     fi
 
     if [ -d "/var/www/html/prestashop/download" ]; then
-        if [ "$(grep -iq '<Directory /var/www/html/prestashop/download>' $APACHE_CONFIG)" ]; then
+        if [ ! "$(grep -iq '<Directory /var/www/html/prestashop/download>' $APACHE_CONFIG)" ]; then
             echo "Adding configuration to disable the php engine in the download directory..."
             cat <<EOF >> $APACHE_CONFIG
 <Directory /var/www/html/prestashop/download>
@@ -914,7 +914,7 @@ EOF
     fi
 
     # Disable TRACK and TRACE methods
-    if [ "$(grep -iq 'TraceEnable off' $APACHE_CONFIG)" ]; then
+    if [ ! "$(grep -iq 'TraceEnable off' $APACHE_CONFIG)" ]; then
         echo "Adding configuration to disable TRACK and TRACE methods..."
         echo "TraceEnable off" >> $APACHE_CONFIG
         sendLog "TRACK and TRACE methods disabled"
@@ -922,14 +922,14 @@ EOF
 
 
     # dont allow access to any file with .class.php or .inc.php
-    if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/(.*\.class\.php|.*\.inc\.php)$' $APACHE_CONFIG)" ]; then
+    if [ ! "$(grep -iq 'RedirectMatch 404 ^/prestashop/(.*\.class\.php|.*\.inc\.php)$' $APACHE_CONFIG)" ]; then
         echo "Adding configuration to disable access to .class.php and .inc.php files..."
         echo "RedirectMatch 404 ^/prestashop/(.*\.class\.php|.*\.inc\.php)$" >> $APACHE_CONFIG
         sendLog "Access to .class.php and .inc.php files disabled"
     fi
 
     # dont allow access to any file in the /phpmyadmin directory
-    if [ "$(grep -iq 'RedirectMatch 404 ^/prestashop/phpmyadmin' $APACHE_CONFIG)" ]; then
+    if [ ! "$(grep -iq 'RedirectMatch 404 ^/prestashop/phpmyadmin' $APACHE_CONFIG)" ]; then
         echo "Adding configuration to disable access to the phpmyadmin directory..."
         echo "RedirectMatch 404 ^/prestashop/phpmyadmin" >> $APACHE_CONFIG
         sendLog "Access to phpmyadmin directory disabled"
