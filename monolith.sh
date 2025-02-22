@@ -158,7 +158,7 @@ prescripts(){
                         echo
                         if [ "$NEW_MYSQL_ROOT_PASSWORD" == "$CONFIRM_MYSQL_ROOT_PASSWORD" ]; then
                             mysql -u root -e "SET PASSWORD FOR 'root'@'localhost' = PASSWORD('$NEW_MYSQL_ROOT_PASSWORD');"
-                            mysql -u root -e "FLUSH PRIVILEGES;"
+                            mysql -u root -e "FLUSH PRIVILEGES;" -p$NEW_MYSQL_ROOT_PASSWORD
                             MYSQL_ROOT_PASSWORD=$NEW_MYSQL_ROOT_PASSWORD
                             # Change the user in presta config
                             if [ -f /var/www/html/prestashop/config/settings.inc.php ]; then
