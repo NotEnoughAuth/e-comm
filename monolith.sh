@@ -1645,12 +1645,16 @@ ipv6_config() {
         INTERFACE=$(ip route | grep default | awk '{print $5}')
 
         # Check if changes were already made to the network config file
-        if grep -q "IPV6INIT=yes" /etc/sysconfig/network-scripts/ifcfg-$INTERFACE;
+        if grep -q "IPV6ADDR=" /etc/sysconfig/network-scripts/ifcfg-$INTERFACE;
         then
             echo "Network config file already has IPv6 settings"
         else
             echo "Setting up IPv6..."
-            echo "IPV6INIT=yes" >> /etc/sysconfig/network-scripts/ifcfg-$INTERFACE
+            if [ -z "$(grep IPV6INIT /etc/sysconfig/network-scripts/ifcfg-$INTERFACE)" ]; then
+                echo "IPV6INIT=yes" >> /etc/sysconfig/network-scripts/ifcfg-$INTERFACE
+            else
+                sed -i 's/IPV6INIT=no/IPV6INIT=yes/g' /etc/sysconfig/network-scripts/ifcfg-$INTERFACE
+            fi
             echo "IPV6ADDR=fd00:3::70/64" >> /etc/sysconfig/network-scripts/ifcfg-$INTERFACE
             echo "IPV6_DEFAULTGW=fd00:3::1" >> /etc/sysconfig/network-scripts/ifcfg-$INTERFACE
             systemctl restart network
