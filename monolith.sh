@@ -577,7 +577,7 @@ fi
 # Set SELinux context for /var/www/html, if SELinux is enabled
 if [ -f "/etc/selinux/config" ]; then
     if grep -q '^SELINUX=enforcing' /etc/selinux/config; then
-        chcon -R -t httpd_sys_content_t /var/www/html/prestashop
+        chcon -R -t httpd_sys_rw_content_t /var/www/html/prestashop
     fi
 fi
 
