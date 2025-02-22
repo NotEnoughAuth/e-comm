@@ -53,6 +53,14 @@
 #                                        __/ | __/ |      
 #                                       |___/ |___/       
 
+# This script makes the following subscripts:
+# - lock_users.sh - Locks all users except root, and the user running the script
+# - iptables.sh - Configures iptables to block all incoming and outgoing traffic except for the necessary services
+# - backup.sh - Backs up the /var/www/html directory, apache config directory, and mysql database (If Prestashop is found to be on the system)
+# - restore.sh - Restores the backups created by the backup.sh script (If Prestashop is found to be on the system)
+# - mysql_restore.sh - Restores the mysql database backup created by the backup.sh script (If Prestashop is found to be on the system)
+
+
 # https://raw.githubusercontent.com/NotEnoughAuth/e-comm/master/monolith.sh
 
 # Check if the script is being run as root
@@ -151,6 +159,12 @@ prescripts(){
                         if [ "$NEW_MYSQL_ROOT_PASSWORD" == "$CONFIRM_MYSQL_ROOT_PASSWORD" ]; then
                             mysqladmin -u root password $NEW_MYSQL_ROOT_PASSWORD
                             MYSQL_ROOT_PASSWORD=$NEW_MYSQL_ROOT_PASSWORD
+                            # Change the user in presta config
+                            if [ -f /var/www/html/prestashop/config/settings.inc.php ]; then
+                                sed -i "s/'DB_PASSWORD', ''/'DB_PASSWORD', '$MYSQL_ROOT_PASSWORD'/" /var/www/html/prestashop/config/settings.inc.php
+                            elif [ -f /var/www/html/prestashop/app/config/parameters.php ]; then
+                                sed -i "s/'password' => ''/'password' => '$MYSQL_ROOT_PASSWORD'/" /var/www/html/prestashop/app/config/parameters.php
+                            fi
                             break
                         else
                             echo "Passwords do not match, please try again."
