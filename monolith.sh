@@ -550,6 +550,9 @@ select TIMESTAMP in $(for ts in $TIMESTAMPS; do date -d @$ts +"%Y-%m-%d_%H:%M:%S
     fi
 done
 
+# Convert the selected timestamp back to epoch time
+TIMESTAMP=$(date -d "${TIMESTAMP//_/ }" +"%s")
+
 # Restore the /var/www/html directory
 if [ -f "/bkp/new/html-$TIMESTAMP.tar.gz" ]; then
     echo "Restoring /var/www/html..."
