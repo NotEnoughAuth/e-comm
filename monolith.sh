@@ -183,6 +183,8 @@ prescripts(){
         PRESTASHOP="false"
     fi
 
+    MYSQL_ROOT_PASSWORD=$NEW_MYSQL_ROOT_PASSWORD
+
     # Check if the system is running apache
     if [ -d /etc/httpd ]; then
         APACHE="true"
