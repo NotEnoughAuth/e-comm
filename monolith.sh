@@ -1147,11 +1147,11 @@ EOF
 
 
     # restart apache
-    if [ -f "/etc/httpd" ]; then
-        systemctl restart apache2
-        sendLog "Apache restarted"
-    elif [ -f "/etc/apache2" ]; then
+    if [ -d "/etc/httpd" ]; then
         systemctl restart httpd
+        sendLog "Apache restarted"
+    elif [ -d "/etc/apache2" ]; then
+        systemctl restart apache2
         sendLog "Apache restarted"
     fi
 
