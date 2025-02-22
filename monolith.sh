@@ -577,7 +577,10 @@ fi
 # Set SELinux context for /var/www/html, if SELinux is enabled
 if [ -f "/etc/selinux/config" ]; then
     if grep -q '^SELINUX=enforcing' /etc/selinux/config; then
-        chcon -R -t httpd_sys_rw_content_t /var/www/html/prestashop
+        chcon -R -t httpd_sys_content_t /var/www/html/prestashop
+        chcon -R -t httpd_sys_rw_content_t /var/www/html/prestashop/cache
+        chattr -R +i /var/www
+        chattr -R -i /var/www/html/prestashop/cache
     fi
 fi
 
@@ -1116,6 +1119,14 @@ EOF
     find "$TARGET_DIR" -type f -exec chmod 644 {} \;
     echo "Permissions set: Directories (755), Files (644) in $TARGET_DIR"
     sendLog "Permissions set: Directories (755), Files (644) in $TARGET_DIR"
+    if [ "$PRESTASHOP" == "true" ]; then
+        # Set the correct SELinux tags for the /var/www/html/prestashop directory
+        chcon -R -t httpd_sys_content_t /var/www/html/prestashop
+        chcon -R -t httpd_sys_rw_content_t /var/www/html/prestashop/cache
+        chattr -R +i /var/www
+        chattr -R -i /var/www/html/prestashop/cache
+        echo "SELinux tags set for /var/www/html/prestashop"
+    fi
 
 
     # restart apache
