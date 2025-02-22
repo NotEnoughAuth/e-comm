@@ -86,6 +86,24 @@ prescripts(){
             else
                 MYSQL="true"
                 sendLog "Prestashop is installed on the system, and MySQL has been configured"
+
+                # Check if the root password is blank, if it is change it
+                if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
+                    echo "The MySQL root password is blank, please change it"
+                    while true; do
+                        read -p "Enter a new password for the MySQL root user: " -s NEW_MYSQL_ROOT_PASSWORD
+                        echo
+                        read -p "Confirm the new password: " -s CONFIRM_MYSQL_ROOT_PASSWORD
+                        echo
+                        if [ "$NEW_MYSQL_ROOT_PASSWORD" == "$CONFIRM_MYSQL_ROOT_PASSWORD" ]; then
+                            mysqladmin -u root password $NEW_MYSQL_ROOT_PASSWORD
+                            MYSQL_ROOT_PASSWORD=$NEW_MYSQL_ROOT_PASSWORD
+                            break
+                        else
+                            echo "Passwords do not match, please try again."
+                        fi
+                    done
+                fi
             fi
         else
             MYSQL="false"
