@@ -1121,19 +1121,21 @@ EOF
         fi
     fi
 
-    # fix permissions on the /var/www/html/prestashop directory
-    TARGET_DIR="/var/www/html/prestashop"
-    # Check if Target directory has immutable flag set
-    if [ "$(lsattr -d $TARGET_DIR | grep -o 'i')" ]; then
-        chattr -R -i $TARGET_DIR
-    fi
-    # Set directories to 755
-    find "$TARGET_DIR" -type d -exec chmod 755 {} \;
-    # Set files to 644
-    find "$TARGET_DIR" -type f -exec chmod 644 {} \;
-    echo "Permissions set: Directories (755), Files (644) in $TARGET_DIR"
-    sendLog "Permissions set: Directories (755), Files (644) in $TARGET_DIR"
+    
     if [ "$PRESTASHOP" == "true" ]; then
+        # fix permissions on the /var/www/html/prestashop directory
+        TARGET_DIR="/var/www/html/prestashop"
+        # Check if Target directory has immutable flag set
+        if [ "$(lsattr -d $TARGET_DIR | grep -o 'i')" ]; then
+            chattr -R -i $TARGET_DIR
+        fi
+        # Set directories to 755
+        find "$TARGET_DIR" -type d -exec chmod 755 {} \;
+        # Set files to 644
+        find "$TARGET_DIR" -type f -exec chmod 644 {} \;
+        echo "Permissions set: Directories (755), Files (644) in $TARGET_DIR"
+        sendLog "Permissions set: Directories (755), Files (644) in $TARGET_DIR"
+        
         # Set the correct SELinux tags for the /var/www/html/prestashop directory
         chcon -R -t httpd_sys_content_t /var/www/html/prestashop
         chcon -R -t httpd_sys_rw_content_t /var/www/html/prestashop/cache
