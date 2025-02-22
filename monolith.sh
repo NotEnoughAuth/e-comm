@@ -530,33 +530,6 @@ EOF
 MYSQL_ROOT_USER="root"         # MySQL root username
 LOGFILE="/ccdc/logs/monolith_log.txt"
 
-# Check if mysql is installed on the system
-if [ $(which mysql) ]; then
-    MYSQL="true"
-else
-    MYSQL="false"
-fi
-
-if [ "$MYSQL" == "true" ]; then
-    # Check if MYSQL_ROOT_PASS is passed as an argument or if we need to ask for it
-    if [ -z "$1" ]; then
-        # If no password argument is provided, try to use passwordless login
-        MYSQL_COMMAND="mysql -u $MYSQL_ROOT_USER"
-
-        # Test if passwordless login is available by running a simple query
-        if ! $MYSQL_COMMAND -e "exit" > /dev/null 2>&1; then
-            # If passwordless login fails, prompt for MySQL root password
-            read -sp "Enter MySQL root password: " MYSQL_ROOT_PASS
-            echo
-            MYSQL_COMMAND="mysql -u $MYSQL_ROOT_USER -p$MYSQL_ROOT_PASS"
-        fi
-    else
-        # If an argument is passed, use it as the MySQL root password
-        MYSQL_ROOT_PASS="$1"
-        MYSQL_COMMAND="mysql -u $MYSQL_ROOT_USER -p$MYSQL_ROOT_PASS"
-    fi
-fi
-
 # Get a list of backups in the /bkp/new directory
 BACKUPS=$(ls /bkp/new | grep -E 'html|httpd|apache2|ecomm')
 
@@ -578,7 +551,6 @@ done
 if [ -f "/bkp/new/html-$TIMESTAMP.tar.gz" ]; then
     echo "Restoring /var/www/html..."
     tar -xzf /bkp/new/html-$TIMESTAMP.tar.gz -C /
-    sendLog "HTML directory restored from $TIMESTAMP"
 else
     echo "No backup found for /var/www/html with timestamp $TIMESTAMP"
 fi
@@ -588,14 +560,70 @@ if [ -f "/bkp/new/httpd-$TIMESTAMP.tar.gz" ]; then
     if [ -d "/etc/httpd" ]; then
         echo "Restoring /etc/httpd..."
         tar -xzf /bkp/new/httpd-$TIMESTAMP.tar.gz -C /
-        sendLog "Apache config restored from $TIMESTAMP"
     elif [ -d "/etc/apache2" ]; then
         echo "Restoring /etc/apache2..."
         tar -xzf /bkp/new/httpd-$TIMESTAMP.tar.gz -C /
-        sendLog "Apache config restored from $TIMESTAMP"
     fi
 else
     echo "No backup found for apache config with timestamp $TIMESTAMP"
+fi
+
+
+EOF
+
+    # Make the restore script executable
+    chmod +x $SCRIPT_DIR/linux/restore.sh
+
+    # Make Mysql restore script
+    cat <<'EOF' > $SCRIPT_DIR/linux/mysql_restore.sh
+#!/bin/bash
+
+# Variables
+MYSQL_ROOT_USER="root"         # MySQL root username
+LOGFILE="/ccdc/logs/monolith_log.txt"
+
+# Check if mysql is installed on the system
+if [ $(which mysql) ]; then
+    MYSQL="true"
+else
+    MYSQL="false"
+fi
+
+# Get a list of backups in the /bkp/new directory
+BACKUPS=$(ls /bkp/new | grep -E 'html|httpd|apache2|ecomm')
+
+# Extract unique timestamps from the backup filenames
+TIMESTAMPS=$(echo "$BACKUPS" | grep -oP '\d{10}' | sort -u)
+
+# Ask the user which timestamp they want to restore from
+echo "Available backup timestamps:"
+select TIMESTAMP in $TIMESTAMPS; do
+    if [ -n "$TIMESTAMP" ]; then
+        echo "Restoring from timestamp: $TIMESTAMP"
+        break
+    else
+        echo "Invalid selection. Please try again."
+    fi
+done
+
+if [ "$MYSQL" == "true" ]; then
+    # Check if MYSQL_ROOT_PASS is passed as an argument or if we need to ask for it
+    if [ -z "$1" ]; then
+        # If no password argument is provided, try to use passwordless login
+        MYSQL_COMMAND="mysql -u $MYSQL_ROOT_USER"
+
+        # Test if passwordless login is available by running a simple query
+        if ! $MYSQL_COMMAND -e "exit" > /dev/null 2>&1; then
+            # If passwordless login fails, prompt for MySQL root password
+            read -sp "Enter MySQL root password: " MYSQL_ROOT_PASS
+            echo
+            MYSQL_COMMAND="mysql -u $MYSQL_ROOT_USER -p$MYSQL_ROOT_PASS"
+        fi
+    else
+        # If an argument is passed, use it as the MySQL root password
+        MYSQL_ROOT_PASS="$1"
+        MYSQL_COMMAND="mysql -u $MYSQL_ROOT_USER -p$MYSQL_ROOT_PASS"
+    fi
 fi
 
 if [ "$MYSQL" == "true" ]; then
@@ -604,20 +632,14 @@ if [ "$MYSQL" == "true" ]; then
         echo "Restoring MySQL database..."
         if [ -z "$MYSQL_ROOT_PASS" ]; then
             mysql -u root < /bkp/new/ecomm-$TIMESTAMP.sql
-            sendLog "MySQL database restored from $TIMESTAMP"
         else
             mysql -u root -p$MYSQL_ROOT_PASS < /bkp/new/ecomm-$TIMESTAMP.sql
-            sendLog "MySQL database restored from $TIMESTAMP"
         fi
     else
         echo "No backup found for MySQL database with timestamp $TIMESTAMP"
     fi
 fi
 EOF
-
-    # Make the restore script executable
-    chmod +x $SCRIPT_DIR/linux/restore.sh
-
 
     if [ $PRESTASHOP == "true" ]; then
         # Remove prestashop admin directory
@@ -906,7 +928,7 @@ EOF
 # Variables
 MYSQL_ROOT_USER="root"         # MySQL root username
 PRESTASHOP_DIR="/var/www/html/prestashop"  # Path to your PrestaShop installation
-$LOGFILE="/ccdc/logs/monolith-log.txt"
+LOGFILE="/ccdc/logs/monolith-log.txt"
 
 # Check if MYSQL_ROOT_PASS is passed as an argument or if we need to ask for it
 if [ -z "$1" ]; then
@@ -1594,11 +1616,15 @@ install_packages() {
     # Install required packages
 
     if [ $(which yum ) ]; then
-        yum install screen nc aide clamav tmux lynis auditd epel-release dialog -y
+        yum install epel-release -y
+        yum install screen nc aide clamav tmux lynis auditd dialog -y
         sendLog "Extra packages installed"
     elif [ $(which apt-get) ]; then
         apt-get install screen netcat aide clamav tmux lynis auditd dialog -y
         sendLog "Extra packages installed"
+        if [ "$PRESTASHOP" == "false" ]; then
+            apt-get install docker.io docker docker-compose -y
+        fi
     elif [ $(which dnf) ]; then
         dnf install screen netcat aide clamav tmux lynis auditd dialog -y
         sendLog "Extra packages installed"
@@ -1889,12 +1915,15 @@ check_for_malicious_bash() {
                 # print the contents of the trap or PROMPT_COMMAND to a file
                 if [ -n "$TRAP_CONTENT" ]; then
                     echo "$TRAP_CONTENT   Found in $FILE On $(date)" >> /ccdc/logs/malicious_bash.txt
+                    sendLog "Malicious trap found in $FILE"
                 fi
                 if [ -n "$PROMPT_COMMAND_CONTENT" ]; then
                     echo "$PROMPT_COMMAND_CONTENT   Found in $FILE On $(date)" >> /ccdc/logs/malicious_bash.txt
+                    sendLog "Malicious PROMPT_COMMAND found in $FILE"
                 fi
                 if [ -n "$WATCH_CONTENT" ]; then
                     echo "$WATCH_CONTENT   Found in $FILE On $(date)" >> /ccdc/logs/malicious_bash.txt
+                    sendLog "Malicious watch found in $FILE"
                 fi
             fi
         fi
