@@ -471,6 +471,7 @@ if [ -f "/bkp/new/html.tar.gz" ]; then
 else
     echo "Zipping up /var/www/html..."
     tar -czf /bkp/new/html.tar.gz /var/www/html
+    cp /bkp/new/html.tar.gz /bkp/new/html-$TIMESTAMP.tar.gz
     sendLog "HTML directory backed up"
 fi
 
@@ -483,6 +484,7 @@ if [ -d "/etc/httpd" ]; then
     else
         echo "Zipping up /etc/httpd..."
         tar -czf /bkp/new/httpd.tar.gz /etc/httpd
+        cp /bkp/new/httpd.tar.gz /bkp/new/httpd-$TIMESTAMP.tar.gz
         sendLog "Apache config backed up"
     fi
 elif [ -d "/etc/apache2" ]; then
@@ -493,6 +495,7 @@ elif [ -d "/etc/apache2" ]; then
     else
         echo "Zipping up /etc/apache2..."
         tar -czf /bkp/new/apache2.tar.gz /etc/apache2
+        cp /bkp/new/apache2.tar.gz /bkp/new/apache2-$TIMESTAMP.tar.gz
         sendLog "Apache config backed up"
     fi
 fi
@@ -538,7 +541,7 @@ TIMESTAMPS=$(echo "$BACKUPS" | grep -oP '\d{10}' | sort -u)
 
 # Ask the user which timestamp they want to restore from
 echo "Available backup timestamps:"
-select TIMESTAMP in $TIMESTAMPS; do
+select TIMESTAMP in $(for ts in $TIMESTAMPS; do date -d @$ts +"%Y-%m-%d %H:%M:%S"; done); do
     if [ -n "$TIMESTAMP" ]; then
         echo "Restoring from timestamp: $TIMESTAMP"
         break
@@ -568,6 +571,19 @@ else
     echo "No backup found for apache config with timestamp $TIMESTAMP"
 fi
 
+# Set SELinux context for /var/www/html, if SELinux is enabled
+if [ -f "/etc/selinux/config" ]; then
+    if grep -q '^SELINUX=enforcing' /etc/selinux/config; then
+        chcon -R -t httpd_sys_content_t /var/www/html/prestashop
+    fi
+fi
+
+# Restart apache
+if [ -d "/etc/httpd" ]; then
+    systemctl restart httpd
+elif [ -d "/etc/apache2" ]; then
+    systemctl restart apache2
+fi
 
 EOF
 
@@ -1361,17 +1377,19 @@ EOF
 harden() {
     # Disable prelinking altogether for aide
     #
-    if grep -q ^PRELINKING /etc/sysconfig/prelink
-    then
-        sed -i 's/PRELINKING.*/PRELINKING=no/g' /etc/sysconfig/prelink
-        sendLog "Prelinking disabled"
-    else
-        echo -e "\n# Set PRELINKING=no per security requirements" >> /etc/sysconfig/prelink
-        echo "PRELINKING=no" >> /etc/sysconfig/prelink
-        sendLog "Prelinking disabled"
+    if [ -f /etc/sysconfig/prelink ]; then
+        if [ grep -q ^PRELINKING /etc/sysconfig/prelink ] && [ ! grep -q ^PRELINKING=no /etc/sysconfig/prelink ];
+        then
+            sed -i 's/PRELINKING.*/PRELINKING=no/g' /etc/sysconfig/prelink
+            sendLog "Prelinking disabled"
+        else
+            echo -e "\n# Set PRELINKING=no per security requirements" >> /etc/sysconfig/prelink
+            echo "PRELINKING=no" >> /etc/sysconfig/prelink
+            sendLog "Prelinking disabled"
+        fi
     fi
 
-    # Set Last Login/Access Notification
+
     if grep -q pam_lastlog.so /etc/pam.d/system-auth
     then
         echo "pam_lastlog.so already in system-auth"
