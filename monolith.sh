@@ -1655,8 +1655,21 @@ ipv6_config() {
             else
                 sed -i 's/IPV6INIT=no/IPV6INIT=yes/g' /etc/sysconfig/network-scripts/ifcfg-$INTERFACE
             fi
-            echo "IPV6ADDR=fd00:3::70/64" >> /etc/sysconfig/network-scripts/ifcfg-$INTERFACE
-            echo "IPV6_DEFAULTGW=fd00:3::1" >> /etc/sysconfig/network-scripts/ifcfg-$INTERFACE
+            if [ -z "$(grep IPV6_AUTOCONF /etc/sysconfig/network-scripts/ifcfg-$INTERFACE)" ]; then
+                echo "IPV6_AUTOCONF=no" >> /etc/sysconfig/network-scripts/ifcfg-$INTERFACE
+            else
+                sed -i 's/IPV6_AUTOCONF=yes/IPV6_AUTOCONF=no/g' /etc/sysconfig/network-scripts/ifcfg-$INTERFACE
+            fi
+            if [ -z "$(grep IPV6ADDR /etc/sysconfig/network-scripts/ifcfg-$INTERFACE)" ]; then
+                echo "IPV6ADDR=fd00:3::70/64" >> /etc/sysconfig/network-scripts/ifcfg-$INTERFACE
+            else
+                sed -i 's/IPV6ADDR=.*$/IPV6ADDR=fd00:3::70\/64/g' /etc/sysconfig/network-scripts/ifcfg-$INTERFACE
+            fi
+            if [ -z "$(grep IPV6_DEFAULTGW /etc/sysconfig/network-scripts/ifcfg-$INTERFACE)" ]; then
+                echo "IPV6_DEFAULTGW=fd00:3::1" >> /etc/sysconfig/network-scripts/ifcfg-$INTERFACE
+            else
+                sed -i 's/IPV6_DEFAULTGW=.*$/IPV6_DEFAULTGW=fd00:3::1/g' /etc/sysconfig/network-scripts/ifcfg-$INTERFACE
+            fi
             systemctl restart network
             sendLog "IPv6 configured"
         fi
