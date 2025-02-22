@@ -619,7 +619,7 @@ TIMESTAMPS=$(echo "$BACKUPS" | grep -oP '\d{10}' | sort -u)
 
 # Ask the user which timestamp they want to restore from
 echo "Available backup timestamps:"
-select TIMESTAMP in $TIMESTAMPS; do
+select TIMESTAMP in $(for ts in $TIMESTAMPS; do date -d @$ts +"%Y-%m-%d_%H:%M:%S"; done); do
     if [ -n "$TIMESTAMP" ]; then
         echo "Restoring from timestamp: $TIMESTAMP"
         break
@@ -627,6 +627,9 @@ select TIMESTAMP in $TIMESTAMPS; do
         echo "Invalid selection. Please try again."
     fi
 done
+
+# Convert the selected timestamp back to epoch time
+TIMESTAMP=$(date -d "${TIMESTAMP//_/ }" +"%s")
 
 if [ "$MYSQL" == "true" ]; then
     # Check if MYSQL_ROOT_PASS is passed as an argument or if we need to ask for it
@@ -662,6 +665,9 @@ if [ "$MYSQL" == "true" ]; then
     fi
 fi
 EOF
+
+    # Make the mysql restore script executable
+    chmod +x $SCRIPT_DIR/linux/mysql_restore.sh
 
     if [ $PRESTASHOP == "true" ]; then
         # Remove prestashop admin directory
