@@ -1139,7 +1139,7 @@ EOF
     else
         echo "Zipping up /var/www/html..."
         tar -czf /bkp/new/html.tar.gz /var/www/html
-        cp /bkp/new/html.tar.gz /bkp/html-$TIMESTAMP.tar.gz
+        cp /bkp/new/html.tar.gz /bkp/new/html-$TIMESTAMP.tar.gz
         sendLog "HTML directory backed up"
     fi
 
@@ -1152,7 +1152,7 @@ EOF
         else
             echo "Zipping up /etc/httpd..."
             tar -czf /bkp/new/httpd.tar.gz /etc/httpd
-            cp /bkp/new/httpd.tar.gz /bkp/httpd-$TIMESTAMP.tar.gz
+            cp /bkp/new/httpd.tar.gz /bkp/new/httpd-$TIMESTAMP.tar.gz
             sendLog "Apache config backed up"
         fi
     elif [ -d "/etc/apache2" ]; then
@@ -1163,7 +1163,7 @@ EOF
         else
             echo "Zipping up /etc/apache2..."
             tar -czf /bkp/new/apache2.tar.gz /etc/apache2
-            cp /bkp/new/apache2.tar.gz /bkp/apache2-$TIMESTAMP.tar.gz
+            cp /bkp/new/apache2.tar.gz /bkp/new/apache2-$TIMESTAMP.tar.gz
             sendLog "Apache config backed up"
         fi
     fi
@@ -1181,10 +1181,10 @@ EOF
         else
             if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
                 mysqldump -u root --all-databases > /bkp/new/ecomm.sql
-                cp /bkp/new/ecomm.sql /bkp/ecomm-$TIMESTAMP.sql
+                cp /bkp/new/ecomm.sql /bkp/new/ecomm-$TIMESTAMP.sql
             else
                 mysqldump -u root -p$MYSQL_ROOT_PASSWORD --all-databases > /bkp/new/ecomm.sql
-                cp /bkp/new/ecomm.sql /bkp/ecomm-$TIMESTAMP.sql
+                cp /bkp/new/ecomm.sql /bkp/new/ecomm-$TIMESTAMP.sql
             fi
             sendLog "MySQL database backed up"
         fi
