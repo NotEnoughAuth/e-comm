@@ -132,7 +132,7 @@ prescripts(){
     if [ "$OS_ID" == "centos" ] && [ "$OS_VERSION_ID" == "7" ]; then
         # if the system is running CentOS 7, we need to add the new repositories
         cat <<'EOF' > /etc/yum.repos.d/CentOS-Base.repo
-        # CentOS-Base.repo
+# CentOS-Base.repo
 #
 # The mirror system uses the connecting IP address of the client and the
 # update status of each mirror to pick mirrors that are updated to and
@@ -198,7 +198,11 @@ configure_networking(){
         echo "Setting up DNS..."
         INTERFACE=$(ip route | grep default | awk '{print $5}')
         sed -i 's/DNS1='.*'/DNS1=1.1.1.1/g' /etc/sysconfig/network-scripts/ifcfg-$INTERFACE
-        sed -i 's/DNS2='.*'/DNS2=9.9.9.9/g' /etc/sysconfig/network-scripts/ifcfg-$INTERFACE
+        if ! grep -q "^DNS2=" /etc/sysconfig/network-scripts/ifcfg-$INTERFACE; then
+            echo "DNS2=9.9.9.9" >> /etc/sysconfig/network-scripts/ifcfg-$INTERFACE
+        else
+            sed -i 's/^DNS2=.*/DNS2=9.9.9.9/' /etc/sysconfig/network-scripts/ifcfg-$INTERFACE
+        fi
         systemctl restart network
         sendLog "New DNS servers set"
     fi
