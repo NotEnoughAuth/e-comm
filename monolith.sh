@@ -1,5 +1,58 @@
 #!/bin/bash
 
+# .___________. __    __   _______                          
+# |           ||  |  |  | |   ____|                         
+# `---|  |----`|  |__|  | |  |__                            
+#     |  |     |   __   | |   __|                           
+#     |  |     |  |  |  | |  |____                          
+#     |__|     |__|  |__| |_______|                         
+                                                          
+#  __       __  .___________.___________. __       _______  
+# |  |     |  | |           |           ||  |     |   ____| 
+# |  |     |  | `---|  |----`---|  |----`|  |     |  |__    
+# |  |     |  |     |  |        |  |     |  |     |   __|   
+# |  `----.|  |     |  |        |  |     |  `----.|  |____  
+# |_______||__|     |__|        |__|     |_______||_______| 
+                                                          
+#  _______          ______   ______   .___  ___. .___  ___. 
+# |   ____|        /      | /  __  \  |   \/   | |   \/   | 
+# |  |__    ______|  ,----'|  |  |  | |  \  /  | |  \  /  | 
+# |   __|  |______|  |     |  |  |  | |  |\/|  | |  |\/|  | 
+# |  |____        |  `----.|  `--'  | |  |  |  | |  |  |  | 
+# |_______|        \______| \______/  |__|  |__| |__|  |__| 
+                                                          
+# .___________. __    __       ___   .___________.          
+# |           ||  |  |  |     /   \  |           |          
+# `---|  |----`|  |__|  |    /  ^  \ `---|  |----`          
+#     |  |     |   __   |   /  /_\  \    |  |               
+#     |  |     |  |  |  |  /  _____  \   |  |               
+#     |__|     |__|  |__| /__/     \__\  |__|               
+                                                          
+#   ______   ______    __    __   __       _______          
+#  /      | /  __  \  |  |  |  | |  |     |       \         
+# |  ,----'|  |  |  | |  |  |  | |  |     |  .--.  |        
+# |  |     |  |  |  | |  |  |  | |  |     |  |  |  |        
+# |  `----.|  `--'  | |  `--'  | |  `----.|  '--'  |        
+#  \______| \______/   \______/  |_______||_______/         
+                                                                                
+
+# This script is designed to be ran on a variety of systems, with a main focus on prestashop configurations
+# It will detect what services are running on the system and configure them to be more secure
+# It will also backup the system and allow for the restoration of the system to a previous state
+# Feel free to modify this script to fit your needs, and to add additional configurations
+# The reason why this script includes so many sub scripts is so that you only need to download one script
+# and not have to worry about failed downloads or missing files
+
+# Script Made by:
+#  _____                     ______                       
+# |  _  |                    | ___ \                      
+# | | | |_      _____ _ __   | |_/ / __ _   _  __ _  __ _ 
+# | | | \ \ /\ / / _ \ '_ \  |  __/ '__| | | |/ _` |/ _` |
+# \ \_/ /\ V  V /  __/ | | | | |  | |  | |_| | (_| | (_| |
+#  \___/  \_/\_/ \___|_| |_| \_|  |_|   \__, |\__, |\__,_|
+#                                        __/ | __/ |      
+#                                       |___/ |___/       
+
 # https://raw.githubusercontent.com/NotEnoughAuth/e-comm/master/monolith.sh
 
 # Check if the script is being run as root
