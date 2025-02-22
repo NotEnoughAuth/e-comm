@@ -157,7 +157,7 @@ prescripts(){
                         read -p "Confirm the new password: " -s CONFIRM_MYSQL_ROOT_PASSWORD
                         echo
                         if [ "$NEW_MYSQL_ROOT_PASSWORD" == "$CONFIRM_MYSQL_ROOT_PASSWORD" ]; then
-                            mysqladmin -u root password $NEW_MYSQL_ROOT_PASSWORD
+                            mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '$NEW_MYSQL_ROOT_PASSWORD';"
                             MYSQL_ROOT_PASSWORD=$NEW_MYSQL_ROOT_PASSWORD
                             # Change the user in presta config
                             if [ -f /var/www/html/prestashop/config/settings.inc.php ]; then
