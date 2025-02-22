@@ -541,7 +541,7 @@ TIMESTAMPS=$(echo "$BACKUPS" | grep -oP '\d{10}' | sort -u)
 
 # Ask the user which timestamp they want to restore from
 echo "Available backup timestamps:"
-select TIMESTAMP in $(for ts in $TIMESTAMPS; do date -d @$ts +"%Y-%m-%d %H:%M:%S"; done); do
+select TIMESTAMP in $(for ts in $TIMESTAMPS; do date -d @$ts +"%Y-%m-%d_%H:%M:%S"; done); do
     if [ -n "$TIMESTAMP" ]; then
         echo "Restoring from timestamp: $TIMESTAMP"
         break
