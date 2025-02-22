@@ -1617,14 +1617,18 @@ remove_unneeded_services() {
 
 update_packages() {
     # Update all packages
-    if [ "$OS_ID" == "centos" ]; then
+    if [ $(which yum ) ]; then
         sendLog "Updating packages..."
         yum update -y
         sendLog "Packages updated"
-    elif [ "$OS_ID" == "ubuntu" ]; then
+    elif [ $(which apt-get ) ]; then
         sendLog "Updating packages..."
         apt-get update -y
         apt-get upgrade -y
+        sendLog "Packages updated"
+    elif [ $(which dnf ) ]; then
+        sendLog "Updating packages..."
+        dnf update -y
         sendLog "Packages updated"
     fi
 }
