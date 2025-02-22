@@ -46,10 +46,10 @@ sendError(){
 
 
 # get the OS ID
-OS_ID=$(cat /etc/os-release | grep ^ID= | cut -d'=' -f2)
+OS_ID=$(cat /etc/os-release | grep ^ID= | cut -d'=' -f2 | sed 's/"//g')
 
 # get the OS VERSION_ID
-OS_VERSION_ID=$(cat /etc/os-release | grep ^VERSION_ID= | cut -d'=' -f2)
+OS_VERSION_ID=$(cat /etc/os-release | grep ^VERSION_ID= | cut -d'=' -f2 | sed 's/"//g')
 
 # Echo the OS_ID and OS_VERSION_ID
 echo "OS_ID=$OS_ID"
@@ -1303,10 +1303,10 @@ cronjail() {
     fi
 
     # Restart the cron service
-    systemctl restart crond
-    systemctl restart cron
+    systemctl restart crond 2>/dev/null
+    systemctl restart cron 2>/dev/null
     # Restart the atd service
-    systemctl restart atd
+    systemctl restart atd 2>/dev/null
     sendLog "Cron and atd services restarted"
 }
 
@@ -1630,6 +1630,8 @@ update_packages() {
         sendLog "Updating packages..."
         dnf update -y
         sendLog "Packages updated"
+    else
+        sendError "Could not update packages"
     fi
 }
 
