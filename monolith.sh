@@ -64,7 +64,6 @@ prescripts(){
     # Check if the system is running prestashop and get the MySQL root password
     if [ -d /var/www/html/prestashop ]; then
         if [ $(which mysql) ]; then
-            PRESTASHOP="true"
             ATTEMPTS=0
             CORRECT_PASS="random_text"
             while ([ ! -z "$CORRECT_PASS" ]) && [ $ATTEMPTS -le 2 ]; do
@@ -92,6 +91,8 @@ prescripts(){
             MYSQL="false"
             sendError "Could not connect to MySQL, please check the password and try again"
         fi
+
+        PRESTASHOP="true"
 
     else
         PRESTASHOP="false"
@@ -1135,7 +1136,7 @@ EOF
         find "$TARGET_DIR" -type f -exec chmod 644 {} \;
         echo "Permissions set: Directories (755), Files (644) in $TARGET_DIR"
         sendLog "Permissions set: Directories (755), Files (644) in $TARGET_DIR"
-        
+
         # Set the correct SELinux tags for the /var/www/html/prestashop directory
         chcon -R -t httpd_sys_content_t /var/www/html/prestashop
         chcon -R -t httpd_sys_rw_content_t /var/www/html/prestashop/cache
