@@ -184,8 +184,6 @@ prescripts(){
         PRESTASHOP="false"
     fi
 
-    MYSQL_ROOT_PASSWORD=$NEW_MYSQL_ROOT_PASSWORD
-
     # Check if the system is running apache
     if [ -d /etc/httpd ]; then
         APACHE="true"
@@ -1148,7 +1146,7 @@ EOF
     if [ $MYSQL == "true" ]; then
         # Check for interactive shell
         if [ -t 0 ]; then
-            echo -e "$DEFAULT_PRESTA_PASS\nn\n\n\n\n\n" | mysql_secure_installation
+            echo -e "$MYSQL_ROOT_PASSWORD\nn\n\n\n\n\n" | mysql_secure_installation
         else
             sendError "Non interactive shell, cannot run mysql_secure_installation"
         fi
