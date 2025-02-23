@@ -1517,17 +1517,23 @@ harden() {
         echo "pam_lastlog.so already in system-auth"
     else
         echo "Adding pam_lastlog.so to system-auth..."
-        sed -i '/pam_limits.so/a session required pam_lastlog.so showfailed' /etc/pam.d/system-auth
+        sed -i '/pam_limits.so/a session    required    pam_lastlog.so showfailed' /etc/pam.d/system-auth
         sendLog "Last login/access notification added"
     fi
 
-    # Disable Ctrl-Alt-Del Reboot Activation
-    if grep -q "exec /usr/bin/logger -p security.info" /etc/init/control-alt-delete.conf
-    then
-        echo "Control-Alt-Delete already disabled"
-    else
+    # # Disable Ctrl-Alt-Del Reboot Activation
+    # if grep -q "exec /usr/bin/logger -p security.info" /etc/init/control-alt-delete.conf
+    # then
+    #     echo "Control-Alt-Delete already disabled"
+    # else
+    #     echo "Disabling Control-Alt-Delete..."
+    #     sed -i 's/exec \/sbin\/shutdown -r now "Control-Alt-Delete pressed"/exec \/usr\/bin\/logger -p security.info "Control-Alt-Delete pressed"/g' /etc/init/control-alt-delete.conf
+    #     sendLog "Control-Alt-Delete disabled"
+    # fi
+
+    if [ -f /usr/lib/systemd/system/ctrl-alt-del.target ]; then
         echo "Disabling Control-Alt-Delete..."
-        sed -i 's/exec \/sbin\/shutdown -r now "Control-Alt-Delete pressed"/exec \/usr\/bin\/logger -p security.info "Control-Alt-Delete pressed"/g' /etc/init/control-alt-delete.conf
+        systemctl mask ctrl-alt-del.target
         sendLog "Control-Alt-Delete disabled"
     fi
 
@@ -1555,30 +1561,34 @@ harden() {
     fi
 
     # Disable support for RPC IPv6
-    if grep -q "udp6" /etc/netconfig
-    then
-        echo "Support for RPC IPv6 already disabled"
-    else
-        echo "Disabling Support for RPC IPv6..."
-        sed -i 's/udp6       tpi_clts      v     inet6    udp     -       -/#udp6       tpi_clts      v     inet6    udp     -       -/g' /etc/netconfig
-        sed -i 's/tcp6       tpi_cots_ord  v     inet6    tcp     -       -/#tcp6       tpi_cots_ord  v     inet6    tcp     -       -/g' /etc/netconfig
-        sendLog "Support for RPC IPv6 disabled"
+    if [ -f /etc/netconfig ]:
+        if grep -q "udp6" /etc/netconfig
+        then
+            echo "Support for RPC IPv6 already disabled"
+        else
+            echo "Disabling Support for RPC IPv6..."
+            sed -i 's/udp6       tpi_clts      v     inet6    udp     -       -/#udp6       tpi_clts      v     inet6    udp     -       -/g' /etc/netconfig
+            sed -i 's/tcp6       tpi_cots_ord  v     inet6    tcp     -       -/#tcp6       tpi_cots_ord  v     inet6    tcp     -       -/g' /etc/netconfig
+            sendLog "Support for RPC IPv6 disabled"
+        fi
     fi
 
     # Only allow root to login from console
-    if grep -q "tty1" /etc/securetty
-    then
-        echo "Root already allowed to login from console"
-    else
-        echo "Allowing root to login from console..."
-        echo "tty1" >> /etc/securetty
-        sendLog "Root allowed to only login from console"
+    if [ -f /etc/securetty ]; then
+        if grep -q "tty1" /etc/securetty
+        then
+            echo "Root already allowed to login from console"
+        else
+            echo "Allowing root to login from console..."
+            echo "tty1" >> /etc/securetty
+            sendLog "Root allowed to only login from console"
+        fi
     fi
 
     # Set permissions on the /root directory
     chmod 700 /root
     sendLog "Permissions set on /root"
-
+    
     # Enable UMASK 077
     if grep -q "UMASK 077" /etc/login.defs
     then
