@@ -162,9 +162,9 @@ prescripts(){
                             MYSQL_ROOT_PASSWORD=$NEW_MYSQL_ROOT_PASSWORD
                             # Change the user in presta config
                             if [ -f /var/www/html/prestashop/config/settings.inc.php ]; then
-                                sed -i "s/'DB_PASSWORD', ''/'DB_PASSWORD', '$MYSQL_ROOT_PASSWORD'/" /var/www/html/prestashop/config/settings.inc.php
+                                sed -i "s/define('_DB_PASSWD_', '.*');/define('_DB_PASSWD_', '$MYSQL_ROOT_PASSWORD');/" /var/www/html/prestashop/config/settings.inc.php
                             elif [ -f /var/www/html/prestashop/app/config/parameters.php ]; then
-                                sed -i "s/'password' => ''/'password' => '$MYSQL_ROOT_PASSWORD'/" /var/www/html/prestashop/app/config/parameters.php
+                                sed -i "s/'database_password' => '.*',/'database_password' => '$MYSQL_ROOT_PASSWORD',/" /var/www/html/prestashop/app/config/parameters.php
                             fi
                             break
                         else
